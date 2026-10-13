@@ -76,7 +76,7 @@ def main():
     ap.add_argument("--compare", action="store_true")
     ap.add_argument("--brief", help="SOUND.md or any text file with the sonic brief")
     ap.add_argument("--ask", help="extra question")
-    ap.add_argument("--model", help="any OpenRouter audio-capable model; default SOUND_DESIGN_EARS_MODEL or "
+    ap.add_argument("--model", help="any OpenRouter audio-capable model; default MUSIC_PRODUCER_EARS_MODEL or "
                     "google/gemini-3.8-flash (cheap, accurate). ~google/gemini-pro-latest for a deeper read")
     a = ap.parse_args()
     brief = pathlib.Path(a.brief).read_text()[:6000] if a.brief else ""
@@ -89,7 +89,7 @@ def main():
         if a.compare:
             content.append({"type": "text", "text": f"Candidate {k}: {pathlib.Path(f).name}"})
         content.append(encode(f))
-    model = a.model or key("SOUND_DESIGN_EARS_MODEL", required=False) or DEFAULT_MODEL
+    model = a.model or key("MUSIC_PRODUCER_EARS_MODEL", required=False) or DEFAULT_MODEL
     body = {"model": model, "messages": [{"role": "user", "content": content}],
             "response_format": {"type": "json_object"}, "temperature": 0.2}
     req = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=json.dumps(body).encode(),

@@ -1,31 +1,41 @@
-# sound-design
+# music-producer
 
-An agent skill that gives your videos produced audio instead of the same library track and whoosh pack every time. It works free by default and on any video stack.
-
-Point your coding agent (Claude Code, Codex, Cursor, OpenCode, ...) at a rendered video. It decides what the film should sound like, spots the cuts, scores music to the picture, designs a sound for each moment, mixes everything in one acoustic space, masters to streaming loudness, and **measures the result**, because agents can't hear.
+**A music producer for your coding agent.** Give Claude Code, Codex, Cursor or any agent a rendered video and it scores it to the cut, designs the sound effects, mixes, masters, and checks the result against real launch films. Free by default, works with any video stack.
 
 ```
-npx skills add ShriD5/sound-design -g
+npx skills add ShriD5/music-producer -g
 ```
 
-Then ask your agent: *"Do the sound for renders/launch.mp4"*.
+Then ask your agent: *"Produce the audio for renders/launch.mp4"*.
 
-## Why
+## vs. hiring a music producer
 
-Ask an agent for audio and you get the same thing every time: one stock bed, the same riser into a bass impact into a whoosh, flat levels, no mastering. Or it writes a synth track in numpy that sounds like every other synth track it has written. This skill replaces that with a post-production workflow:
+| | a human producer | your agent + music-producer |
+|---|---|---|
+| Custom track for a 40 s launch film | typically hundreds of dollars and up | $0 on your machine, ~$1–2 with paid models |
+| Turnaround | days, plus revision rounds | minutes; regenerate a section in place |
+| Scored to your exact cut | yes | yes: section times come from the cut, hits land within a frame |
+| Sound design, mix, master | often separate people | included, mastered to −13 LUFS and measured against real launch films |
+| Taste | the real thing | AI music plus measured craft, and you pick the take by ear |
+
+A great human producer still wins on taste. This takes your agent from "same stock loop on every video" to launch-film grammar in one run.
+
+## What it does
+
+Ask an agent for audio and you get the same thing every time: one stock bed, the same riser into a bass impact into a whoosh, flat levels, no mastering. Or it writes a synth track in numpy that sounds like every other synth track it has written. This skill gives it a producer's workflow:
 
 1. **Sonic identity.** What does *this* product sound like? A ledger of past films blocks repeats: each new film has to differ on genre, tempo, key, lead instrument or signature sound.
 2. **Spotting.** Detects cuts (including dark, low-contrast footage), suggests tempos that land on them, and renders a contact sheet so the agent sees what's on screen at every sync point.
 3. **Score to picture.** A section plan whose boundaries are the cut times. Takes are analyzed for tempo, key, entrances, ending and plan adherence, then fitted: an entrance aligned to the reveal, the track's real ending spliced onto the logo, Rubber Band tempo conform, and local repaint of sections the model ignored.
 4. **Designed SFX.** A hit hierarchy, layered transient + body + tail, round-robin variants, pitched to the score's key.
 5. **Mix.** Clips land on their transient, not their file start. VO ducks the music with a speech-band carve, everything sits in one shared reverb room, and gain/filter automation adds drop-outs, pre-drop sweeps and air before the reveal.
-6. **Master.** Glue compression, then a 4× oversampled lookahead true-peak limiter that iterates to the target (−14 LUFS / −1 dBTP by default). It names the clips causing heavy limiting.
+6. **Master.** Glue compression, then a 4× oversampled lookahead true-peak limiter that iterates to the target (−13 LUFS / −1 dBTP for launch films). It names the clips causing heavy limiting.
 7. **Measure against real launch films.** Tonal balance against a curve measured from real launch films (Arc, Figma, Framer, Notion, Raycast, Stripe), loudness, LRA, true peak, hit sync verified per layered moment, VO-over-bed, phone-speaker survival, mono fold-down, endings. You get a report plus a picture the agent reads.
 8. **Human ears decide quality.** A blind, loudness-matched listening page (candidates mixed with real reference films) so you pick by ear in a minute. AI listeners are only used to spot problems: in testing, Gemini ranked a real Arc launch film last.
 
 ## Free or paid, your choice
 
-| | free (default) | paid (`SOUND_DESIGN_TIER=paid`) |
+| | free (default) | paid (`MUSIC_PRODUCER_TIER=paid`) |
 |---|---|---|
 | Music | [ACE-Step 1.5](https://github.com/ACE-Step/ACE-Step-1.5), local, MIT. ~4–5 min per 40 s take on an M2, seconds on a CUDA GPU | ElevenLabs Music v2.5 composition plans (sections locked to the cut) via fal or your ElevenLabs key; Lyria, MiniMax, Stable Audio via fal |
 | SFX | CC0 recordings via [Openverse](https://openverse.org) (no key) or [Freesound](https://freesound.org) (free key), credits written for you | ElevenLabs SFX, Stable Audio, video-to-foley |
@@ -40,19 +50,19 @@ A typical 40 s film costs **$0** on the free tier and **$0.60–2** on the paid 
 - Free local music needs ~10 GB of disk (`uv run scripts/setup.py ace`) and works best on Apple Silicon or an NVIDIA GPU.
 
 ```bash
-uv run skills/sound-design/scripts/setup.py doctor   # what works, what each key would unlock
-uv run skills/sound-design/scripts/setup.py ace      # free local music model (once)
+uv run skills/music-producer/scripts/setup.py doctor   # what works, what each key would unlock
+uv run skills/music-producer/scripts/setup.py ace      # free local music model (once)
 ```
 
-Keys are read from env vars, then `./.env`, then `~/.config/sound-design/keys.env`:
+Keys are read from env vars, then `./.env`, then `~/.config/music-producer/keys.env`:
 
 ```
 FREESOUND_API_KEY=     # free, better SFX search
 OPENROUTER_API_KEY=    # optional ears
 FAL_KEY=               # paid tier
 ELEVENLABS_API_KEY=    # paid tier, your own plan
-SOUND_DESIGN_TIER=free
-SOUND_DESIGN_HOME=~/.cache/sound-design   # model weights
+MUSIC_PRODUCER_TIER=free
+MUSIC_PRODUCER_HOME=~/.cache/music-producer   # model weights
 ```
 
 ## Works with any video tool

@@ -374,7 +374,7 @@ def main():
     sp = ap.add_subparsers(dest="cmd", required=True)
     g = sp.add_parser("gen")
     g.add_argument("--provider", default="auto", choices=["auto"] + list(P.MUSIC),
-                   help="auto = free local ACE-Step unless SOUND_DESIGN_TIER=paid")
+                   help="auto = free local ACE-Step unless MUSIC_PRODUCER_TIER=paid")
     g.add_argument("--plan", help="section plan json (exact sections on eleven; folded into a caption elsewhere)")
     g.add_argument("--prompt")
     g.add_argument("--negative")

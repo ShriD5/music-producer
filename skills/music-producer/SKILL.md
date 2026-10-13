@@ -1,11 +1,11 @@
 ---
-name: sound-design
-description: Production audio for any rendered video (launch films, promos, trailers, explainers, demos, reels, social clips), free by default. Covers sonic identity, spotting, scoring to picture (local ACE-Step for free, or ElevenLabs Music / Lyria / MiniMax / Stable Audio with your own keys), designed SFX (free CC0 recordings or generated), VO processing, mixing with ducking and a shared room, mastering to LUFS/true-peak, and measured QA. Works on any mp4 from any tool (Remotion, HyperFrames, After Effects, Premiere, screen recordings). Use whenever a video needs music, sound effects, a mix or a master; when the audio is generic, samey, flat or cheap; or after picture lock in any video workflow, in place of library BGM and stock SFX packs.
+name: music-producer
+description: Your agent's music producer. Produces the full soundtrack for any rendered video (launch films, promos, trailers, explainers, demos, reels, social clips), free by default. Covers sonic identity, spotting, scoring to picture (local ACE-Step for free, or ElevenLabs Music / Lyria / MiniMax / Stable Audio with your own keys), designed SFX (free CC0 recordings or generated), VO processing, mixing with ducking and a shared room, mastering to LUFS/true-peak, and measured QA. Works on any mp4 from any tool (Remotion, HyperFrames, After Effects, Premiere, screen recordings). Use whenever a video needs music, sound effects, a mix or a master; when the audio is generic, samey, flat or cheap; or after picture lock in any video workflow, in place of library BGM and stock SFX packs. Also use when asked to produce, compose or score music for a video, or to act as the music producer.
 ---
 
-# Sound design: score, design, mix, master
+# Music producer: score, sound design, mix, master
 
-Agents make every video sound the same: one library track, the same whoosh / riser / bass-impact pack, or a hand-synthesized "EDM" bed. They add no identity and no picture sync, set flat levels and skip mastering. This skill does what a post house does: **decide what this film sounds like, spot it against picture, score to the cut, design each sound for its moment, mix in one room, master to spec, and measure everything, because you cannot hear.**
+Agents make every video sound the same: one library track, the same whoosh / riser / bass-impact pack, or a hand-synthesized "EDM" bed. They add no identity and no picture sync, set flat levels and skip mastering. This skill makes the agent work like a music producer and post house: **decide what this film sounds like, spot it against picture, score to the cut, design each sound for its moment, mix in one room, master to spec, and measure everything, because you cannot hear.**
 
 `SKILL_DIR` below is the directory of this file. All scripts are uv single-file scripts: `uv run $SKILL_DIR/scripts/<x>.py ...`, run from the video project root. Output goes to `./audio/`.
 
@@ -13,14 +13,14 @@ Agents make every video sound the same: one library track, the same whoosh / ris
 
 Run `uv run $SKILL_DIR/scripts/setup.py doctor` first. It shows what works on this machine and what each missing piece would unlock. Requirements: `ffmpeg` and `uv`.
 
-| | **free** (default) | **paid** (`SOUND_DESIGN_TIER=paid`) |
+| | **free** (default) | **paid** (`MUSIC_PRODUCER_TIER=paid`) |
 |---|---|---|
 | Music | ACE-Step 1.5, local, MIT (`setup.py ace` once, ~10 GB). ~4–5 min per 40 s take on an M-series Mac, seconds on a CUDA GPU | ElevenLabs Music v2.5 plans (sections locked to the cut) via `FAL_KEY` or your own `ELEVENLABS_API_KEY`; Lyria, MiniMax, Stable Audio via fal |
 | SFX | CC0 recordings: Openverse (no key) or Freesound (free `FREESOUND_API_KEY`); credits written to `audio/CREDITS.md` | Generated per prompt: ElevenLabs SFX (fal or direct), Stable Audio, video-to-foley |
 | Mix, master, analysis | local, free | same |
 | Ears (optional) | `OPENROUTER_API_KEY` + Gemini Flash, ~$0.005 per film | same, or `--model ~google/gemini-pro-latest` |
 
-`auto` picks within the tier, and any call can override it with `--provider`. Keys are read from env vars, then `./.env`, then `~/.config/sound-design/keys.env`. Paid spend is logged per project in `audio/costs.jsonl`: about $0.60 for a lean 40 s film, $1.50–2 with extra takes and foley. If the free music doesn't satisfy the user, offer the paid tier for the score alone. That's where the money buys the most.
+`auto` picks within the tier, and any call can override it with `--provider`. Keys are read from env vars, then `./.env`, then `~/.config/music-producer/keys.env`. Paid spend is logged per project in `audio/costs.jsonl`: about $0.60 for a lean 40 s film, $1.50–2 with extra takes and foley. If the free music doesn't satisfy the user, offer the paid tier for the score alone. That's where the money buys the most.
 
 ## Workflow
 

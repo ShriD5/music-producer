@@ -1,13 +1,13 @@
 """Where audio comes from. Free first; paid only when the user has a key AND chose the paid tier.
 
-Tiers (SOUND_DESIGN_TIER = free | paid, default free):
+Tiers (MUSIC_PRODUCER_TIER = free | paid, default free):
   music  free: ace (ACE-Step 1.5, local, MIT)            paid: eleven (fal or ElevenLabs direct), lyria, minimax, ...
   sfx    free: freesound (free key) > openverse (no key)  paid: eleven (fal or ElevenLabs direct), stable, sonilo
   ears   openrouter (any audio-capable model; free ones exist) - optional, analyze.py is the real QA
 
-Keys/config are read from the environment, then ./.env, then ~/.config/sound-design/keys.env:
-  FAL_KEY, ELEVENLABS_API_KEY, FREESOUND_API_KEY, OPENROUTER_API_KEY, SOUND_DESIGN_TIER, SOUND_DESIGN_HOME,
-  SOUND_DESIGN_ELEVEN_ROUTE (fal|direct), SOUND_DESIGN_EARS_MODEL
+Keys/config are read from the environment, then ./.env, then ~/.config/music-producer/keys.env:
+  FAL_KEY, ELEVENLABS_API_KEY, FREESOUND_API_KEY, OPENROUTER_API_KEY, MUSIC_PRODUCER_TIER, MUSIC_PRODUCER_HOME,
+  MUSIC_PRODUCER_ELEVEN_ROUTE (fal|direct), MUSIC_PRODUCER_EARS_MODEL
 """
 from __future__ import annotations
 
@@ -50,12 +50,12 @@ SFX = {
 
 
 def tier() -> str:
-    return (C.key("SOUND_DESIGN_TIER", required=False) or "free").lower()
+    return (C.key("MUSIC_PRODUCER_TIER", required=False) or "free").lower()
 
 
 def home() -> pathlib.Path:
-    h = C.key("SOUND_DESIGN_HOME", required=False)
-    return pathlib.Path(h).expanduser() if h else pathlib.Path("~/.cache/sound-design").expanduser()
+    h = C.key("MUSIC_PRODUCER_HOME", required=False)
+    return pathlib.Path(h).expanduser() if h else pathlib.Path("~/.cache/music-producer").expanduser()
 
 
 def ace_dir() -> pathlib.Path | None:
@@ -81,7 +81,7 @@ def pick_music(name: str) -> str:
         return "ace"
     if has(MUSIC["eleven"]["route"]):
         sys.exit("free tier selected but local ACE-Step isn't installed. Run `uv run setup.py ace` (free, ~10 GB), "
-                 "or set SOUND_DESIGN_TIER=paid to use your fal/ElevenLabs key.")
+                 "or set MUSIC_PRODUCER_TIER=paid to use your fal/ElevenLabs key.")
     sys.exit("no music provider available. Run `uv run setup.py ace` for the free local model.")
 
 
@@ -98,7 +98,7 @@ def pick_sfx(name: str) -> str:
 # ---------------------------------------------------------------- http
 def http(url, data=None, headers=None, method=None, timeout=300, raw=False):
     body = json.dumps(data).encode() if isinstance(data, (dict, list)) else data
-    h = {"User-Agent": "sound-design-skill/1.0"} | ({"Content-Type": "application/json"} if isinstance(data, (dict, list)) else {})
+    h = {"User-Agent": "music-producer-skill/1.0"} | ({"Content-Type": "application/json"} if isinstance(data, (dict, list)) else {})
     h |= headers or {}
     req = urllib.request.Request(url, data=body, headers=h, method=method or ("POST" if data is not None else "GET"))
     try:
@@ -111,8 +111,8 @@ def http(url, data=None, headers=None, method=None, timeout=300, raw=False):
 
 # ---------------------------------------------------------------- ElevenLabs (fal or direct)
 def eleven_via_fal() -> bool:
-    """SOUND_DESIGN_ELEVEN_ROUTE=fal|direct; default fal when FAL_KEY exists, else your ElevenLabs key."""
-    route = (C.key("SOUND_DESIGN_ELEVEN_ROUTE", required=False) or "").lower()
+    """MUSIC_PRODUCER_ELEVEN_ROUTE=fal|direct; default fal when FAL_KEY exists, else your ElevenLabs key."""
+    route = (C.key("MUSIC_PRODUCER_ELEVEN_ROUTE", required=False) or "").lower()
     if route in ("fal", "direct"):
         return route == "fal"
     return bool(C.key("FAL_KEY", required=False))

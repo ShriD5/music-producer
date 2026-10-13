@@ -8,7 +8,7 @@
   uv run setup.py ace           # install the free local music model (ACE-Step 1.5, MIT, ~10 GB incl. weights)
   uv run setup.py keys          # print where keys go and what they unlock
 
-Put SOUND_DESIGN_HOME=/big/disk/sound-design in ~/.config/sound-design/keys.env to keep model weights off a small disk.
+Put MUSIC_PRODUCER_HOME=/big/disk/music-producer in ~/.config/music-producer/keys.env to keep model weights off a small disk.
 """
 import platform
 import shutil
@@ -32,7 +32,7 @@ def run(cmd, **kw):
 
 def doctor():
     ok = lambda b: "ok " if b else "-- "
-    print(f"sound-design doctor  ({platform.system()} {platform.machine()}, python {platform.python_version()})\n")
+    print(f"music-producer doctor  ({platform.system()} {platform.machine()}, python {platform.python_version()})\n")
     ff = shutil.which("ffmpeg")
     print(f"{ok(ff)} ffmpeg {'' if ff else ' REQUIRED: brew install ffmpeg / apt install ffmpeg'}")
     print(f"{ok(shutil.which('uv'))} uv")
@@ -42,14 +42,14 @@ def doctor():
     for k, cost, what in KEYS:
         print(f"{ok(C.key(k, required=False))} {k:<20} [{cost}] {what}")
     t = P.tier()
-    print(f"\ntier: {t}  (SOUND_DESIGN_TIER=free|paid in ~/.config/sound-design/keys.env)")
+    print(f"\ntier: {t}  (MUSIC_PRODUCER_TIER=free|paid in ~/.config/music-producer/keys.env)")
     try:
         mp = P.pick_music("auto")
     except SystemExit as e:
         mp = f"none ({e})"
     print(f"  music -> {mp}\n  sfx   -> {P.pick_sfx('auto')}\n  mix/master/analysis -> local, free")
     if t == "free" and (C.key("FAL_KEY", required=False) or C.key("ELEVENLABS_API_KEY", required=False)):
-        print("  (paid keys found; set SOUND_DESIGN_TIER=paid, or pass --provider eleven per call, to use them)")
+        print("  (paid keys found; set MUSIC_PRODUCER_TIER=paid, or pass --provider eleven per call, to use them)")
 
 
 def ace():
@@ -71,10 +71,10 @@ def ace():
 
 
 def keys():
-    print("Keys are read from: env vars, ./.env, ~/.config/sound-design/keys.env\n")
+    print("Keys are read from: env vars, ./.env, ~/.config/music-producer/keys.env\n")
     for k, cost, what in KEYS:
         print(f"{k}=...   # [{cost}] {what}")
-    print("SOUND_DESIGN_TIER=free   # or paid\nSOUND_DESIGN_HOME=~/.cache/sound-design   # model weights live here")
+    print("MUSIC_PRODUCER_TIER=free   # or paid\nMUSIC_PRODUCER_HOME=~/.cache/music-producer   # model weights live here")
 
 
 if __name__ == "__main__":

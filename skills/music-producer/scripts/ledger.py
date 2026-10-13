@@ -16,7 +16,9 @@ import time
 import os
 
 # per user, not per skill install: survives updates and stays out of the repo
-LEDGER = pathlib.Path(os.environ.get("SOUND_DESIGN_LEDGER", "~/.config/sound-design/ledger.jsonl")).expanduser()
+LEDGER = pathlib.Path(os.environ.get("MUSIC_PRODUCER_LEDGER", "~/.config/music-producer/ledger.jsonl")).expanduser()
+if not LEDGER.exists() and pathlib.Path("~/.config/sound-design/ledger.jsonl").expanduser().exists():  # pre-rename
+    LEDGER = pathlib.Path("~/.config/sound-design/ledger.jsonl").expanduser()
 
 
 def main():

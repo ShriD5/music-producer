@@ -1,4 +1,4 @@
-"""Shared helpers for the sound-design scripts: audio IO, dB math, fal queue client, cost log."""
+"""Shared helpers for the music-producer scripts: audio IO, dB math, fal queue client, cost log."""
 from __future__ import annotations
 
 import json
@@ -18,25 +18,27 @@ SKILL_DIR = pathlib.Path(__file__).resolve().parent.parent
 
 
 # ---------- keys ----------
-CONFIG_FILES = ["./.env", "~/.config/sound-design/keys.env"]
+CONFIG_FILES = ["./.env", "~/.config/music-producer/keys.env", "~/.config/sound-design/keys.env"]  # last: legacy
 
 
 def key(name: str, required: bool = True) -> str | None:
-    """Env var, then ./.env, then ~/.config/sound-design/keys.env. required=False returns None when unset."""
-    if os.environ.get(name):
-        return os.environ[name]
+    """Env var, then ./.env, then ~/.config/music-producer/keys.env. required=False returns None when unset."""
+    names = [name] + ([name.replace("MUSIC_PRODUCER_", "SOUND_DESIGN_")] if name.startswith("MUSIC_PRODUCER_") else [])
+    for n in names:  # SOUND_DESIGN_* is the pre-rename spelling
+        if os.environ.get(n):
+            return os.environ[n]
     for p in CONFIG_FILES:
         f = pathlib.Path(p).expanduser()
         if f.exists():
             for line in f.read_text().splitlines():
                 line = line.strip().removeprefix("export ")
-                if line.startswith(name + "="):
+                if any(line.startswith(n + "=") for n in names):
                     v = line.split("=", 1)[1].strip().strip('"').strip("'")
                     if v:
                         return v
     if not required:
         return None
-    sys.exit(f"{name} not set (env var, ./.env or ~/.config/sound-design/keys.env). "
+    sys.exit(f"{name} not set (env var, ./.env or ~/.config/music-producer/keys.env). "
              "Run `uv run setup.py doctor` to see what each key unlocks.")
 
 
