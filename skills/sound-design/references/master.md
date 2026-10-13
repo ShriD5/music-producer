@@ -6,7 +6,8 @@
 
 | Destination | `lufs` | `tp` | Notes |
 |---|---|---|---|
-| Default: X, LinkedIn, website hero, YouTube | -14 | -1.0 | YouTube turns louder content down to ~-14, so going hotter only costs dynamics. |
+| Default for launch films (X, LinkedIn, site hero) | -13 | -1.0 | Measured reference films: −10 to −17, median −13.6. Add `"match": "launch"` so tonal balance lands in the same window. |
+| YouTube-first | -14 | -1.0 | YouTube turns louder content down to ~-14, so going hotter only costs dynamics. |
 | Feed-first IG Reels / TikTok / X autoplay where it competes with loud content | -12 to -11 | -1.0 | Common practice, not an official spec. Never hotter than -9. Expect more limiter GR; keep it < 4 dB. |
 | Product Hunt / landing page (often quiet laptop) | -14 to -13 | -1.0 | |
 | Podcast/audio-only | -16 | -1.0 | |

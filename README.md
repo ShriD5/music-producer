@@ -20,7 +20,8 @@ Ask an agent for audio and you get the same thing every time: one stock bed, the
 4. **Designed SFX.** A hit hierarchy, layered transient + body + tail, round-robin variants, pitched to the score's key.
 5. **Mix.** Clips land on their transient, not their file start. VO ducks the music with a speech-band carve, everything sits in one shared reverb room, and gain/filter automation adds drop-outs, pre-drop sweeps and air before the reveal.
 6. **Master.** Glue compression, then a 4× oversampled lookahead true-peak limiter that iterates to the target (−14 LUFS / −1 dBTP by default). It names the clips causing heavy limiting.
-7. **Measure.** Loudness, LRA, true peak, per-frame hit sync, VO-over-bed in the speech band, phone-speaker survival, mono fold-down, tonal balance, endings. You get a report plus a picture the agent reads. Gemini can optionally listen as a second opinion.
+7. **Measure against real launch films.** Tonal balance against a curve measured from real launch films (Arc, Figma, Framer, Notion, Raycast, Stripe), loudness, LRA, true peak, hit sync verified per layered moment, VO-over-bed, phone-speaker survival, mono fold-down, endings. You get a report plus a picture the agent reads.
+8. **Human ears decide quality.** A blind, loudness-matched listening page (candidates mixed with real reference films) so you pick by ear in a minute. AI listeners are only used to spot problems: in testing, Gemini ranked a real Arc launch film last.
 
 ## Free or paid, your choice
 
@@ -66,10 +67,11 @@ The input is a rendered video. Render picture without music (keep VO if you have
 | `ledger.py` | sonic-identity history so films don't repeat |
 | `spot.py` | cuts, motion, tempo-to-picture, contact sheet |
 | `music.py` | `gen` (any provider, one plan format), `analyze` (+ plan adherence), `fit`, `repaint`, `extend` |
-| `sfx.py` | `gen` (libraries or generators), `variants` (round-robin), `video` (foley bed), `index` |
+| `sfx.py` | `gen` (libraries or generators), `sub` (designed sub drop in key), `tune` (pitch takes to the score's key), `variants` (round-robin), `video` (foley bed), `index` |
 | `mix.py` | session → buses → room → master → mux, limiter hotspots |
 | `analyze.py` | measured QA report + analysis.png |
-| `listen.py` | optional Gemini critique / blind candidate comparison |
+| `pack.py` | blind, loudness-matched listening page (candidates + real reference films) for the human to pick |
+| `listen.py` | optional Gemini critique (spots problems; not a quality judge) |
 
 ## Adding a provider
 

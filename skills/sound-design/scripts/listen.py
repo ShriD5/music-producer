@@ -8,9 +8,11 @@
   uv run listen.py audio/music/score-1.wav audio/music/score-2.wav --compare --brief audio/SOUND.md
   uv run listen.py audio/sfx/logo-hit-*.wav --compare --ask "which hit is the tightest, least generic?"
 
-Second opinion, not ground truth. Measured behaviour: scores are inflated (9-10/10 on almost anything), and it
-"hears" events the brief asks for even when they are absent, so --compare strips timestamps from the brief. Use it
-to find problems (genericness, artifacts, harshness); confirm with analyze.py before acting. ~$0.03-0.08 per call.
+Second opinion, not a judge. Measured: it ranked a real Arc launch film LAST of 9 and called it "AI warbling";
+two orderings of the same files gave opposite rankings; scores are inflated; it "hears" events the brief asks for
+(--compare strips timestamps from the brief for that reason). Use it to spot obvious problems (a clashing tone, a
+harsh moment, a dead section), confirm with analyze.py, and leave quality calls to the human via pack.py.
+~$0.005 (Flash) to $0.08 (Pro) per call.
 """
 import argparse
 import base64

@@ -10,25 +10,27 @@ Session (all times in output seconds, gains in dB):
 {
   "duration": 42.0,
   "video": "renders/video.mp4",
-  "master": {"lufs": -14, "tp": -1.0, "glue": true},
+  "master": {"lufs": -13, "tp": -1.0, "glue": true, "match": "launch"},
   "room": {"size": 0.35, "damping": 0.55, "predelay_ms": 14, "hpf": 280, "lpf": 8500, "return_db": -4},
   "buses": {
     "vo":    {"preset": "vo"},
     "music": {"preset": "music", "gain_db": -3, "eq": [{"type": "peak", "hz": 3000, "db": -2, "q": 0.9}],
+              "sub": {"octave_db": -8, "shelf_db": 2},
               "duck": {"by": "vo", "depth_db": 6, "mid_extra_db": 5, "attack": 0.06, "release": 0.5}},
     "sfx":   {"preset": "sfx", "send": 0.12},
     "amb":   {"preset": "amb", "gain_db": -12, "duck": {"by": "vo", "depth_db": 4}}
   },
   "clips": [
     {"bus": "music", "file": "audio/music/fit.wav", "at": 0},
-    {"bus": "sfx", "file": "audio/sfx/logo-hit-2.wav", "at": 38.0, "align": "peak", "gain_db": -3,
+    {"bus": "sfx", "file": "audio/sfx/logo-hit-2.wav", "at": 38.0, "align": "attack", "gain_db": -3,
      "pan": -0.6, "pan_to": 0.6, "width": 1.0, "pitch": -2, "hpf": 0, "lpf": 0, "reverse": false,
      "in": 0, "out": null, "fade_in": 0, "fade_out": 0.3, "send": 0.25, "label": "logo"}
   ],
   "automation": {"music": {"gain": [[0, -6], [4.7, -6], [4.95, -28], [5.0, 0]],
                            "lpf": [[0, 600], [4.9, 600], [5.0, 20000]]}}
 }
-align: start (default) | peak (the transient lands on `at`) | end (the file ends on `at`; risers, reverse swells).
+align: start (default) | attack (the sound's arrival lands on `at`: clicks, impacts, sub drops, anything layered)
+       | peak (its loudest moment lands on `at`: whooshes, swishes) | end (the file ends on `at`: risers, swells).
 """
 import argparse
 import json
@@ -44,6 +46,7 @@ from scipy.ndimage import minimum_filter1d, uniform_filter1d
 from scipy.signal import butter, sosfilt, sosfiltfilt
 
 import _common as C
+import tonal
 
 SR = C.SR
 
@@ -149,6 +152,18 @@ def duck_gain(key, depth_db, thresh_db=-40, attack=0.06, release=0.5):
     return np.interp(np.arange(n) / SR, t, s) * -depth_db
 
 
+def sub_enhance(x, octave_db=None, shelf_db=0.0):
+    """Weight under a thin bed: an octave-down copy of the 40-110 Hz band (felt, not heard) plus a 50 Hz shelf."""
+    y = x
+    if octave_db is not None:
+        band = sosfiltfilt(butter(4, [40, 110], "band", fs=SR, output="sos"), x, axis=-1).astype(np.float32)
+        oct_ = pb.Pedalboard([pb.PitchShift(semitones=-12), pb.LowpassFilter(75), pb.LowpassFilter(75)])(band, SR)
+        y = y + oct_[:, :x.shape[-1]] * C.undb(octave_db)
+    if shelf_db:
+        y = pb.Pedalboard([pb.LowShelfFilter(55, shelf_db, 0.7)])(y.astype(np.float32), SR)
+    return y.astype(np.float32)
+
+
 def split3(x, lo=250, hi=5000):
     low = sosfiltfilt(butter(4, lo, "low", fs=SR, output="sos"), x, axis=-1)
     high = sosfiltfilt(butter(4, hi, "high", fs=SR, output="sos"), x, axis=-1)
@@ -200,12 +215,31 @@ def place_clip(c, n, root):
     if "pan" in c or "pan_to" in c or "width" in c:
         x = pan_stereo(x, c.get("pan", 0), c.get("pan_to"), c.get("width", 1.0))
     align = c.get("align", "start")
-    off = C.peak_time(x) if align == "peak" else (x.shape[-1] / SR if align == "end" else 0.0)
+    off = {"attack": lambda: C.attack_time(x), "peak": lambda: C.peak_time(x), "end": lambda: x.shape[-1] / SR}.get(
+        align, lambda: 0.0)()
     start = c["at"] - off
     s = int(round(start * SR))
     if s < 0:
         x, s = x[..., -s:], 0
     return x, s, start, off
+
+
+def moment_sync(layers):
+    """Where each hit moment actually arrives, measured on the summed layers placed there (nothing else), with the
+    same definition used to place them. Catches layers whose attacks smear apart."""
+    out = []
+    for (bus, anchor), items in layers.items():
+        aligns = {a for _, _, a in items}
+        if bus != "sfx" or not aligns & {"attack", "peak"}:
+            continue
+        s0 = min(s for s, _, _ in items)
+        n = max(s + y.shape[-1] for s, y, _ in items) - s0
+        buf = np.zeros((2, n), np.float32)
+        for s, y, _ in items:
+            buf[:, s - s0:s - s0 + y.shape[-1]] += y
+        t = C.attack_time(buf) if "attack" in aligns else C.peak_time(buf)
+        out.append({"anchor": anchor, "err_ms": round((s0 / SR + t - anchor) * 1000, 1), "layers": len(items)})
+    return out
 
 
 def render(sess, root, outdir, mux=False):
@@ -215,7 +249,7 @@ def render(sess, root, outdir, mux=False):
     names = list(dict.fromkeys(list(buses_cfg) + [c["bus"] for c in sess["clips"]]))
     raw = {b: np.zeros((2, n), np.float32) for b in names}
     send = {b: np.zeros((2, n), np.float32) for b in names}
-    placed = []
+    placed, layers = [], {}
     for c in sess["clips"]:
         x, s, start, off = place_clip(c, n, root)
         e = min(n, s + x.shape[-1])
@@ -228,6 +262,7 @@ def render(sess, root, outdir, mux=False):
         placed.append({"bus": c["bus"], "file": c["file"], "label": c.get("label", pathlib.Path(c["file"]).stem),
                        "start": round(start, 4), "anchor": c["at"], "align": c.get("align", "start"),
                        "transient_offset": round(off, 4), "len": round(x.shape[-1] / SR, 3)})
+        layers.setdefault((c["bus"], round(c["at"], 3)), []).append((s, x[:, :e - s], c.get("align", "start")))
 
     # bus processing (vo first: it keys the ducks)
     out = {}
@@ -242,6 +277,8 @@ def render(sess, root, outdir, mux=False):
         x = pb.Pedalboard(PRESETS[preset]() + eq_board(cfg.get("eq")))(x, SR)
         if preset == "vo" or cfg.get("deess"):
             x = deess(x)
+        if cfg.get("sub"):
+            x = sub_enhance(x, cfg["sub"].get("octave_db"), cfg["sub"].get("shelf_db", 0.0))
         auto = sess.get("automation", {}).get(b, {})
         if isinstance(auto, list):
             auto = {"gain": auto}
@@ -293,6 +330,9 @@ def render(sess, root, outdir, mux=False):
         x = pb.Pedalboard([pb.Compressor(threshold_db=-20, ratio=1.8, attack_ms=25, release_ms=180)])(x, SR)
     if m.get("tilt_db"):
         x = pb.Pedalboard([pb.HighShelfFilter(4500, m["tilt_db"]), pb.LowShelfFilter(120, -m["tilt_db"] / 2)])(x, SR)
+    match_log = []
+    if m.get("match"):  # pull bands that sit outside real launch films' range back into it
+        x, match_log = tonal.match(x, tonal.load_ref(m["match"]), m.get("match_strength", 0.8), m.get("match_max_db", 6))
     gain = target - meter.integrated_loudness(x.T)
     for _ in range(4):
         y, gr, gcurve = tp_limit(x * C.undb(gain), tp - 0.15)
@@ -303,7 +343,9 @@ def render(sess, root, outdir, mux=False):
     y = C.fade(y, 0.0, 0.02)
     tpk = true_peak_db(y)
     C.save(outdir / "mix.wav", y)
-    rep = {"lufs": round(got, 2), "true_peak_dbtp": round(tpk, 2), "limiter_max_gr_db": round(-gr, 2),
+    if match_log:
+        print("  tonal match: " + ", ".join(f"{h:.0f}Hz {g:+.1f}" for h, g in match_log))
+    rep = {"tonal_match": match_log, "lufs": round(got, 2), "true_peak_dbtp": round(tpk, 2), "limiter_max_gr_db": round(-gr, 2),
            "master_gain_db": round(gain, 2), "duration": D, "placed": placed}
     (outdir / "render.json").write_text(json.dumps(rep, indent=1))
     print(f"mix -> {outdir / 'mix.wav'}  {got:.2f} LUFS  {tpk:.2f} dBTP  limiter max GR {-gr:.1f} dB")
@@ -316,6 +358,7 @@ def render(sess, root, outdir, mux=False):
         if all(abs(t - h[0]) > 0.5 for h in hot):
             near = [p["label"] for p in placed if p["start"] - 0.05 <= t <= p["start"] + p["len"]]
             hot.append((t, float(grdb[i]), near))
+    rep["moments"] = moment_sync(layers)
     rep["limiter_hotspots"] = [{"t": round(t, 2), "gr_db": round(g, 1), "playing": n} for t, g, n in hot]
     (outdir / "render.json").write_text(json.dumps(rep, indent=1))
     if -gr > 4:

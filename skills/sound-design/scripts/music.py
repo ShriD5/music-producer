@@ -67,7 +67,7 @@ def plan_meta(plan):
     return bpm, key, dur
 
 
-def plan_caption(plan):
+def plan_caption(plan, compact=False):
     """A section plan folded into one caption for prompt-only models (ACE-Step, Lyria, MiniMax, Stable Audio)."""
     skip = re.compile(r"\d+\s*bpm|\b(major|minor)\b|great production quality|instrumental", re.I)
     styles = [t for t in plan.get("styles", []) if not skip.search(t)]
@@ -75,7 +75,7 @@ def plan_caption(plan):
     for c in plan.get("chunks", []):
         end = c.get("until", prev + c.get("seconds", 0))
         txt = re.sub(r"[{}]", "", c.get("text", "")).strip()
-        bits = ", ".join(c.get("styles", []) + ([txt] if txt else []))
+        bits = ", ".join(c.get("styles", []) + ([txt] if txt and not compact else []))
         arc.append(f"{c['name'].lower()} at {prev:g}s: {bits}")
         prev = end
     neg = plan.get("negative", [])
@@ -97,10 +97,12 @@ def gen(a):
     bpm, key, pdur = plan_meta(plan) if plan else (a.bpm, a.key, None)
     bpm, key = a.bpm or bpm, a.key or key
     secs = pdur or a.duration
+    info = P.MUSIC[prov]
     prompt = a.prompt or (plan_caption(plan) if plan else None)
+    if prompt and info.get("max_prompt") and len(prompt) > info["max_prompt"]:
+        prompt = (plan_caption(plan, compact=True) if plan else prompt)[:info["max_prompt"]]
     if prompt and prov != "eleven" and (bpm or key) and plan:
         prompt += "".join([f" {bpm:g} BPM." if bpm else "", f" Key {key}." if key else ""])
-    info = P.MUSIC[prov]
     print(f"music: {prov} ({info.get('note') or info.get('endpoint')}), {a.n} take(s), ~${info['cost'](secs) * a.n:.2f}",
           file=sys.stderr)
     made, seed0 = [], a.seed or 1000
@@ -132,6 +134,9 @@ def gen(a):
                 payload = {"prompt": prompt}
                 if prov in ("minimax", "stable"):
                     payload |= {"duration": secs, "seed": seed}
+                if prov == "minimax":  # lyrics is required; section tags + [instrumental] keep it wordless
+                    tags = [f"[{c['name'].lower()}]" for c in plan["chunks"]] if plan else ["[intro]", "[outro]"]
+                    payload["lyrics"] = "\n".join(f"{t}\n[instrumental]" for t in tags)
                 if prov == "stable":
                     payload |= {"output_format": "wav",
                                 "negative_prompt": a.negative or "vocals, singing, low quality, muffled, distorted"}

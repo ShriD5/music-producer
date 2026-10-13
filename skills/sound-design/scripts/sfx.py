@@ -7,6 +7,8 @@
   gen       uv run sfx.py gen --cues audio/sfx/cues.json [--only logo-hit swipe] [--root .]
   video     uv run sfx.py video renders/video.mp4 [--segments audio/sfx/foley.json] [--prompt "..."]
   variants  uv run sfx.py variants audio/sfx/tick-1.wav --n 6      # round-robin copies for repeated hits
+  tune      uv run sfx.py tune audio/sfx/tine-*.wav --key "C minor"  # clip pitch that lands each take in key
+  sub       uv run sfx.py sub --note A1 [--drop 12 --dur 1.4]      # designed sub drop under an impact, in key
   index     uv run sfx.py index                                    # re-scan audio/sfx/*.wav
 
 cues.json: [{"id": "logo-hit", "prompt": "...", "query": "wood latch", "dur": 2.5, "n": 3, "provider": "auto",
@@ -184,6 +186,70 @@ def video(a):
     print(f"-> {out} (full-length bed; place at 0 on the amb bus and cut what fights the score)")
 
 
+NOTE_RE = __import__("re").compile(r"^([A-Ga-g])([#b]?)(-?\d)$")
+
+
+def note_hz(note: str) -> float:
+    m = NOTE_RE.match(note.strip())
+    if not m:
+        raise SystemExit(f"bad note '{note}' (use e.g. A1, F#1, Bb0)")
+    idx = "C D EF G A B".index(m.group(1).upper()) + {"#": 1, "b": -1, "": 0}[m.group(2)]
+    midi = 12 * (int(m.group(3)) + 1) + idx
+    return 440.0 * 2 ** ((midi - 69) / 12)
+
+
+def sub(a):
+    """Designed sub drop (the low layer under an impact), tuned to the score's key. Pitch falls `drop` semitones
+    onto the note in `glide` s, decays over `dur`; soft saturation adds harmonics so phones still hear it."""
+    f1 = note_hz(a.note)
+    f0 = f1 * 2 ** (a.drop / 12)
+    n = int(a.dur * C.SR)
+    t = np.arange(n) / C.SR
+    f = f1 + (f0 - f1) * np.exp(-t / max(a.glide / 4, 1e-3))
+    ph = 2 * np.pi * np.cumsum(f) / C.SR
+    env = np.minimum(1, t / 0.004) * np.exp(-t / (a.dur / 3.5))
+    y = np.tanh(a.drive * np.sin(ph)) / np.tanh(a.drive) * env
+    if a.click:
+        y[:int(0.006 * C.SR)] += np.random.default_rng(1).standard_normal(int(0.006 * C.SR)) * 0.25 * np.linspace(1, 0, int(0.006 * C.SR))
+    x, _ = normalize(np.vstack([y, y]).astype(np.float32))
+    out = C.proj(a.root) / "sfx" / f"{a.name or 'sub-' + a.note.replace('#', 's')}.wav"
+    C.save(out, C.fade(x, 0, 0.05))
+    write_index(a.root)
+    print(f"{out.name}: {f0:.0f}->{f1:.0f} Hz over {a.glide}s, {a.dur}s decay (layer it under the impact, align: peak)")
+
+
+NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
+
+
+def tune(a):
+    """Detect each take's pitch and print the clip `pitch` that puts it on the nearest tonic-chord note."""
+    m = __import__("re").match(r"([A-Ga-g][#b]?)\s*(major|minor)", a.key.strip(), __import__("re").I)
+    if not m:
+        sys.exit('--key like "C minor" or "F# major"')
+    root = NAMES.index({"Db": "C#", "D#": "Eb", "Gb": "F#", "G#": "Ab", "A#": "Bb"}.get(m.group(1).capitalize(), m.group(1).capitalize()))
+    chord = [(root + i) % 12 for i in ((0, 3, 7) if m.group(2).lower() == "minor" else (0, 4, 7))]
+    for f in a.files:
+        x = C.mono(C.load(f))
+        pk = int(C.peak_time(x) * C.SR)
+        seg = x[pk + int(0.01 * C.SR): pk + int(0.25 * C.SR)]
+        if len(seg) < 2048:
+            print(f"{pathlib.Path(f).name:24s} too short to pitch")
+            continue
+        sp = np.abs(np.fft.rfft(seg * np.hanning(len(seg)), n=1 << 16))
+        fr = np.fft.rfftfreq(1 << 16, 1 / C.SR)
+        band = (fr > 80) & (fr < 5000)
+        f0 = float(fr[band][np.argmax(sp[band])])
+        clarity = float(sp[band].max() / (np.median(sp[band]) + 1e-9))
+        midi = 69 + 12 * np.log2(f0 / 440)
+        pc = round(midi) % 12
+        cents = (midi - round(midi)) * 100
+        best = min(((c - pc + 6) % 12 - 6 for c in chord), key=abs)
+        shift = best - cents / 100
+        tonal = "tonal" if clarity > 40 else "noisy (pitch matters less)"
+        print(f"{pathlib.Path(f).name:24s} {NAMES[pc]:>2}{cents:+4.0f}c  ->  pitch {shift:+.2f} st to land on "
+              f"{NAMES[(pc + best) % 12]}  [{tonal}]")
+
+
 def variants(a):
     import pedalboard as pb
     x = C.load(a.file)
@@ -220,6 +286,18 @@ def main():
     r.add_argument("--n", type=int, default=4)
     r.add_argument("--spread", type=float, default=0.6, help="max pitch offset in semitones")
     r.add_argument("--root", default=".")
+    tn = sp.add_parser("tune")
+    tn.add_argument("files", nargs="+")
+    tn.add_argument("--key", required=True, help='score key from music.py analyze, e.g. "C minor"')
+    b = sp.add_parser("sub")
+    b.add_argument("--note", required=True, help="landing note, e.g. A1 (55 Hz) or D1; use the score's tonic")
+    b.add_argument("--drop", type=float, default=12, help="semitones it falls from")
+    b.add_argument("--glide", type=float, default=0.15)
+    b.add_argument("--dur", type=float, default=1.4)
+    b.add_argument("--drive", type=float, default=1.8, help="saturation: harmonics for small speakers")
+    b.add_argument("--click", action="store_true", help="add a tiny transient")
+    b.add_argument("--name")
+    b.add_argument("--root", default=".")
     i = sp.add_parser("index")
     i.add_argument("--root", default=".")
     i.add_argument("--normalize", action="store_true", help="re-level every take in audio/sfx (drops duds)")
@@ -230,6 +308,10 @@ def main():
         video(a)
     elif a.cmd == "variants":
         variants(a)
+    elif a.cmd == "sub":
+        sub(a)
+    elif a.cmd == "tune":
+        tune(a)
     else:
         if a.normalize:
             for w in sorted((C.proj(a.root) / "sfx").glob("*.wav")):

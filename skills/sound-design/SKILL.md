@@ -34,7 +34,8 @@ Run `uv run $SKILL_DIR/scripts/ledger.py show` first. Then read `references/soni
 - a one-sentence sonic concept tied to the product (not "upbeat tech"),
 - genre / tempo / key-mode / lead instrument / texture, plus 2 reference tracks or artists for feel,
 - the **signature sound**: one sound that could only belong to this product, used at the logo/CTA button,
-- a banned list for this film.
+- a banned list for this film,
+- first, the **launch film grammar** in `references/sonic-identity.md`: modern production, sub, designed transitions, loud and dense. Identity is the sub-genre, the product's sound palette and the signature, never a novelty genre.
 
 **Gate:** it must differ from the last 3 ledger entries on at least 3 of: genre, tempo band (±15 BPM), key/mode, lead instrument, signature sound. If the brief truly demands similarity (series format), say so in SOUND.md.
 
@@ -49,6 +50,7 @@ Run `uv run $SKILL_DIR/scripts/ledger.py show` first. Then read `references/soni
 Read `references/music.md`. Write `audio/music/plan.json`: sections whose `until` times are the cut times from the music map, plus global styles (genre, instruments, BPM, key). The same plan drives every provider. ElevenLabs renders the sections exactly; prompt-only models (ACE-Step, Lyria, MiniMax) get it folded into a caption with BPM and key.
 `uv run $SKILL_DIR/scripts/music.py gen --plan audio/music/plan.json --n 2` (tier default; `--provider eleven|ace|lyria|...` to choose)
 Then:
+- generate candidates from **two or three providers** (models differ more than seeds do), then `pack.py` them with a reference film so the user picks by ear,
 - `music.py analyze <takes> --plan audio/music/plan.json` on every candidate (bpm, key, entrances, ending, and the level step at each planned boundary). Pick the take whose A-moment boundaries step up hardest. Use `listen.py --compare` only as a tie-breaker on genericness and artifacts,
 - generated music ignores requested keys and quiet sections more often than not. Tune tonal SFX to the **analyzed** key. Enforce sections with `music.py repaint <take> --start 24 --end 29 --prompt "drums stop, sleepy celesta"` (free, local) or with automation in step 6,
 - pick one, then `music.py fit` to the exact duration, aligning a source entrance to the reveal (`--hit/--src`), ending on a button (`--end-hit`) or ring-out; `music.py extend` (paid) or a longer `gen` if it's short.
@@ -67,9 +69,9 @@ Read `references/mix.md`. Write the session: buses (vo / music / sfx / amb), cli
 ### 7. Measure, look, fix: at least 2 passes
 `uv run $SKILL_DIR/scripts/analyze.py`, then **Read `audio/mix/analysis.png`** and `report.md`. Fix every FAIL and every WARN you can't justify in one sentence, then re-render. Then get ears:
 `uv run $SKILL_DIR/scripts/mix.py audio/session.json --mux && uv run $SKILL_DIR/scripts/listen.py renders/video.sound.mp4 --brief audio/SOUND.md`
-`listen.py` is optional (needs `OPENROUTER_API_KEY`). Act on its notes when the measurements agree, or when a note repeats across two passes. Its scores are inflated, and it will "hear" events the brief describes even when they aren't there. Use it to find problems, never to confirm sync or quality. When `mix.py` prints limiter hotspots, turn down the clips it names there.
+`listen.py` is optional (needs `OPENROUTER_API_KEY`) and only spots obvious problems; confirm with the measurements. It is **not** a quality judge: in testing it ranked a real Arc launch film last and flipped rankings between orderings. **Quality is the human's call**: before the final mix, run `uv run $SKILL_DIR/scripts/pack.py audio/music/*.wav --refs <real launch film audio>` and ask the user to pick from the blind, loudness-matched page. One minute of their listening beats any amount of AI critique.
 
-**Gate (all must hold):** integrated loudness within ±0.5 LU of target, true peak ≤ ceiling, no clipping, every peak-aligned hit within 1 frame, VO ≥ 8 dB over the bed in the speech band, A-hits survive a 300 Hz high-pass (phone speakers), mono fold-down loses < 3 LU, and the ending resolves (no chop).
+**Gate (all must hold):** tonal balance inside the launch reference range (sub especially), integrated loudness within ±0.5 LU of target, true peak ≤ ceiling, no clipping, every peak-aligned hit within 1 frame, VO ≥ 8 dB over the bed in the speech band, A-hits survive a 300 Hz high-pass (phone speakers), mono fold-down loses < 3 LU, and the ending resolves (no chop).
 
 ### 8. Deliver
 `renders/<name>.sound.mp4` (video stream copied, AAC 320k), plus `audio/mix/mix.wav` (48k/24-bit) and `audio/mix/stems/`. Report to the user: the concept, what's playing, the measured numbers, the tier and spend, the credits file if recordings were used, and anything the user should check by ear (you haven't heard it). Then log it:
@@ -77,15 +79,16 @@ Read `references/mix.md`. Write the session: buses (vo / music / sfx / amb), cli
 
 ## Non-negotiables (what separates produced from generated)
 
-1. **Silence is designed.** Leave 0.2–1.0 s of air (drop-out, filtered-down bed, or held breath) before the biggest reveal. Wall-to-wall sound is the top amateur tell.
-2. **Hierarchy.** At most three A-hits per 30 s. Every sound earns its place. If two hits within 0.4 s compete, cut one.
-3. **Sync by transient, not file start.** Hits use `align: peak`, swells use `align: end`, and the analyzer verifies 1-frame accuracy.
-4. **One room.** SFX and foley share a reverb send, so things sound recorded in the same space, not pasted on.
-5. **Never repeat a sample audibly.** Repeated hits use round-robin variants.
-6. **Music is edited, not trimmed.** It enters on a downbeat or a strong entrance and ends on a button or a ring-out. Never fade the music out over the logo because the file ran out.
-7. **Carve, don't bury.** Under VO, duck the speech band harder than the lows (`mid_extra_db`). Don't drop the whole track to 0.12.
-8. **Phone first.** Most views are on a phone speaker, often after starting muted. The first second must hook, and hits need mid-range content, not just sub.
-9. **Measure every pass.** You can't hear, so analyze.py and the PNG are your ears and listen.py is a second opinion. Never claim "sounds great". Report the numbers and what the user should listen for.
+1. **Premium grammar first, identity inside it.** Modern produced music with sub weight, designed (abstract, layered, in-key) transitions and impacts, loud and dense (−13 LUFS, `master.match: "launch"`). Novelty genres and literal cartoon foley read as stock, however bespoke. See `references/sonic-identity.md`.
+2. **Air before the reveal.** Leave 0.2–1.0 s of drop-out, filtered-down bed, or held breath before the biggest reveal, so the drop hits harder.
+3. **Hierarchy.** At most three A-hits per 30 s, each with a sub layer. Every sound earns its place. If two hits within 0.4 s compete, cut one.
+4. **Sync by transient, not file start.** Hits use `align: peak`, swells use `align: end`, and the analyzer verifies 1-frame accuracy.
+5. **One room.** SFX and foley share a reverb send, so things sound recorded in the same space, not pasted on.
+6. **Never repeat a sample audibly.** Repeated hits use round-robin variants.
+7. **Music is edited, not trimmed.** It enters on a downbeat or a strong entrance and ends on a button or a ring-out. Never fade the music out over the logo because the file ran out.
+8. **Carve, don't bury.** Under VO, duck the speech band harder than the lows (`mid_extra_db`). Don't drop the whole track to 0.12.
+9. **Phone first.** Most views are on a phone speaker, often after starting muted. The first second must hook, and hits need mid-range content, not just sub.
+10. **Measure every pass.** You can't hear, so analyze.py and the PNG are your ears and listen.py is a second opinion. Never claim "sounds great". Report the numbers and what the user should listen for.
 
 ## References
 

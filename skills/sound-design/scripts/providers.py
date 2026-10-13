@@ -34,6 +34,8 @@ MUSIC = {
     "minimax": {"cost": lambda s: 0.002 * s, "route": "fal", "plan": "prompt", "endpoint": "minimax/music-3"},
     "stable": {"cost": lambda s: 0.0376, "route": "fal", "plan": "prompt",
                "endpoint": "fal-ai/stable-audio-3/medium/text-to-audio"},
+    "mureka": {"cost": lambda s: 0.05, "route": "fal", "plan": "prompt", "endpoint": "mureka/api/generate/instrumental", "max_prompt": 1000,
+               "note": "Mureka 9.5 instrumental (price per fal units, ~$0.05)"},
     "sonilo": {"cost": lambda s: 0.009 * s, "route": "fal", "plan": "video", "endpoint": "sonilo/v1.1/video-to-music"},
 }
 SFX = {

@@ -48,9 +48,21 @@ Three clips at the same `at`, each `align: peak` (or `end` for the swell):
 | Transient | 1–6 kHz | the "click" the eye syncs to; survives phone speakers | 0 dB |
 | Body | 80–400 Hz | weight; felt on headphones and laptops | -3 to -6 dB |
 | Tail | 2–10 kHz or tonal | space and identity; often the signature | -6 to -10 dB, send to room 0.2–0.35 |
+| Sub | 30–80 Hz | the weight every launch film has: `sfx.py sub --note <tonic>1` | -4 to -8 dB, no send |
 | (optional) Swell | broadband | anticipation, `align: end` on the hit | -8 to -12 dB, fade_out 0 |
 
 Check that layers don't stack the same frequency range: hpf the tail (~1 kHz), lpf the body (~2 kHz).
+
+## Designed, not literal
+
+Premium launch films use *abstract* designed sounds: synthetic, processed, musical. Prompt for the design, not the object:
+- Impact: `tight cinematic impact, punchy transient, short metallic ring, no reverb, no music` + a `sfx.py sub` layer
+- Riser: `short tonal synth riser building tension, 1.5 seconds, ending abruptly, no drums` (`keep_head`, `align: end`)
+- Whoosh: `fast airy whoosh passing left to right, 0.5 s, modern, clean` (pan with the motion)
+- Glitch: `short digital glitch stutter, crisp, 0.3 s` (on an edit or a UI state change)
+- UI tick: `tiny crisp synthetic UI tick, very short, high-pitched, clean` (round-robin, low)
+- Character gesture (instead of a cartoon voice): `short cute rising synth blip, two notes, soft, in A major`
+For the free tier, recordings work as **raw material**: pitch them, layer them with a sub drop, filter them, and run them through the room so they stop sounding like field recordings.
 
 ## Pitch and weight
 

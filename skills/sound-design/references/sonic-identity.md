@@ -1,84 +1,88 @@
 # Sonic identity
 
-The question is not "what music fits a tech launch". It is **"what does this product sound like?"** Answer it from the product's own world before reaching for a genre.
+Two questions, in this order:
+1. **What does a premium launch film sound like?** That's the floor, and it's not negotiable (see "Launch film grammar").
+2. **What does *this* product sound like?** That's the identity, and it lives *inside* the grammar, not instead of it.
 
-## Derive it (in this order)
+The failure this file guards against goes both ways. Skip (2) and every film sounds like the same stock track. Skip (1) and you get something "distinctive" (pizzicato comedy, lounge jazz, chiptune) that a listener files under *royalty-free quirky corporate music* within two seconds. In a blind test against Arc, Figma, Raycast and Stripe launch films, a pizzicato-and-celesta score with cartoon foley ranked last and was called "generic stock, thin, cheap", even though it was bespoke.
 
-1. **The product's physical metaphor.** What does using it feel like in the hand? A menu-bar utility is a light switch, a packing app is zips, tape and a suitcase latch, a payments API is a cash drawer or a vault bolt, a dev tool is keys and a terminal bell. Those real objects become the **signature sound** and often the **percussion kit**.
-2. **The user's state at the moment of value.** Relief (calm resolves), speed (driving pulse), control (precise, dry, tight), delight (playful, bouncy), power (weight, low end), focus (minimal, sparse).
-3. **Brand personality vs. category cliché.** Name the category cliché out loud (SaaS = bright corporate piano + claps; AI = glassy pads + arpeggios; crypto = dark trap; fintech = soft strings). Then move at least two steps away from it, while staying true to (2).
-4. **The edit's rhythm.** Fast-cut films want a tempo that lands on cuts (spot.py `tempo_candidates`). Long-take demo films want texture and pulse, not a beat fighting the UI.
+## Launch film grammar (measured)
 
-## Palette catalogue (starting points, not presets)
+Benchmarked on real music-led launch films (`launch-reference.json`, numbers from 7 films: Arc 1.0, Figma "Made in Figma", Framer 3.0, Notion Calendar, Notion Custom Agents, Raycast Glaze, Stripe agent wallet):
 
-Pick one, then mutate at least one axis (instrument, era, tempo, mode) so it's yours. BPM and mode are typical ranges.
+- **Modern produced music.** Electronic or hybrid: cinematic electronic, glitch/IDM, house/tech-house, synth-pop, ambient-into-drop, organic electronic. Even "acoustic" premium scores are produced like electronic records: tight, sidechained, layered, wide, with sub.
+- **Sub weight.** Every reference has real energy at 30–60 Hz: a sub bass, an 808, sub drops under impacts. A score without it reads thin and cheap at any loudness. `analyze.py` flags missing sub against the reference curve.
+- **Dense, abstract, layered sound design** woven into the music. Risers into drops, impacts with sub, whooshes that follow camera moves, glitch stutters, reverse swells, crisp UI ticks. These sounds are *designed* (synthetic, processed, musical), not literal foley. Literal cartoon sounds (boings, gulps, yawns, springs) read cheap unless the film is a cartoon.
+- **Loud and dense.** Integrated −10 to −17 LUFS (median −13.6), short-term range small (LRA median 5.4). The music is compressed and saturated. Builds and drops come from arrangement and automation, not from quiet stretches.
+- **Arrangement energy follows the edit.** Hook in the first second, build, a drop on the reveal, a breakdown, a final drop or button. The energy shape changes every 5–10 s.
+
+Risers, impacts and whooshes are **the grammar, not the cliché**. The cliché is a *stock* riser/impact/whoosh that's reused across films, generic, unsynced and untuned. Ours are designed per film, tuned to the key, layered with sub, and sit on the frame.
+
+## Where identity lives (inside the grammar)
+
+1. **Sub-genre and texture.** Not "electronic", but *which* electronic: glassy glitch for an AI tool, warm organic house for a consumer app, cold minimal techno for infra, cinematic hybrid for a platform launch. Pick from the palette below and mutate one axis.
+2. **A sound palette sampled from the product's world.** The product's physical metaphor (a menu-bar utility is a light switch; a notch app is a tiny mechanism; a payments API is a vault bolt) becomes **percussion, transitions and the signature**: processed, pitched and layered into the electronic production, not played as literal foley. A latch becomes the snare; a switch click becomes the hi-hat; a mechanism ratchet becomes the riser.
+3. **The signature sound.** One designed sound at the logo/button (below).
+4. **Arrangement shaped to this edit.** The music map makes the drops land on this film's reveals.
+5. **The ledger.** Vary sub-genre, tempo band, key/mode, lead sound and signature from the last 3 films. Never vary away from the grammar.
+
+## Palette catalogue (premium foundations)
+
+Pick one, then mutate at least one axis (lead sound, tempo, mode, texture) so it's yours. Every entry keeps modern production and sub.
 
 | Direction | BPM | Mode | Core palette | Fits |
 |---|---|---|---|---|
-| Felt-piano minimalism | 70–90 | major/lydian | felt piano, room tone, soft pedal noise, cello harmonics | calm, privacy, focus tools |
-| Analog warmth / tape soul | 84–96 | dorian | Rhodes, tape-saturated drums, upright bass, vinyl hiss | personal, human, creative tools |
-| Lo-fi boom-bap | 82–92 | minor 7ths | dusty MPC drums, chopped jazz chords, sidechained hiss | indie hacker, notes, journaling |
-| Neo-soul / live funk | 96–108 | dorian | clean guitar, slap/finger bass, live kit, horns stabs | social, community, consumer |
-| Disco / French touch | 112–122 | major | filtered disco loop, four-on-floor, string runs | playful consumer, launches with a "party" |
-| UK garage 2-step | 130–134 | minor | shuffled hats, chopped vocal-free stabs, sub bass | fast, youthful, mobile |
-| Afro-house / amapiano | 112–118 | minor | log drum, shakers, marimba, deep pads | warm, global, money moving |
-| Minimal techno pulse | 122–128 | phrygian | dry kick, rim, modular bleeps, long filter sweeps | infra, dev tools, precision |
-| Liquid drum & bass | 172–176 | minor 9ths | rolling breaks, Reese sub, airy pads | speed, performance, realtime |
-| Breakbeat / big beat | 120–135 | mixolydian | chopped breaks, distorted bass, scratch-like FX | bold, irreverent, hacker energy |
-| Hybrid orchestral | 90–120 | minor→major | taiko, string ostinato, brass swells, synth sub | big platform launches, "a new era" |
-| Chamber pizzicato | 110–132 | major | pizzicato strings, celesta, woodblock, bassoon | clever, cheeky, productivity hacks |
-| Jazz trio brushes | 120–160 swing | ii-V | brushed kit, walking bass, piano comping | elegant, finance, craft |
-| Bossa / lounge | 120–140 | major 7ths | nylon guitar, shaker, flute, soft rhodes | travel, lifestyle, ease |
-| Synthwave / 80s | 96–108 | minor | gated snare, Juno pads, arps, chorus bass | nostalgia, retro UI, games |
-| Chiptune / 8-bit | 120–150 | major | square leads, noise drums, arps | games, dev easter eggs, playful |
-| Glitch / IDM | 90–140 | atonal/minor | micro-edits, granular, bitcrush, clicks | AI, data, "under the hood" |
-| Ambient drone + granular | free | lydian | swelling textures, field recordings, no drums | research, deep tech, cinematic intros |
-| Musique concrète | any | n/a | a beat built only from the product's real-world sounds | the most ownable option; best for signature-heavy films |
-| Phonk / drift | 130–145 | minor | cowbell melody, distorted 808, Memphis drums | aggressive, edgy, gaming |
-| Trap half-time | 140 (70) | minor | 808 glides, hats rolls, sparse keys | confident, street, creator tools |
-| Indie rock live | 110–130 | major | live drums, overdriven guitar, bass, handclaps | scrappy founders, human stories |
-| Gospel / choir pads (wordless) | 70–100 | major | organ, wordless choir "ooh", claps | uplifting, community, nonprofit |
-| Kannada / Carnatic fusion | 90–120 | raga-based | mridangam, veena/violin, electronic sub | Indian market, regional pride |
+| Cinematic electronic / hybrid | 90–120 | minor→major | pulsing synth bass, sub, big drums, risers, string or choir pads, impacts | platform launches, "a new era" |
+| Glitch / IDM | 100–140 | minor | micro-edited percussion, granular textures, bitcrush stutters, deep sub | AI, data, dev tools |
+| Organic electronic (Bonobo / Four Tet) | 110–124 | dorian | chopped organic samples, warm plucks, live-ish drums, sub bass | creative tools, consumer, warm brands |
+| Tech-house / minimal | 122–128 | minor | dry punchy kick, rolling bass, clicks, filter sweeps | productivity, infra, "precision" |
+| Future garage / 2-step | 130–134 | minor | shuffled drums, vocal-chop textures (wordless), reese sub, airy pads | mobile, youthful, fast |
+| Synth-pop / nu-disco | 110–122 | major | bright arps, plucky bass, four-on-floor, sidechained pads | playful consumer, celebrations |
+| Ambient into drop | free → 120+ | lydian | swelling textures for the first third, then a hard drop into a groove | product reveals with a big turn |
+| Liquid drum & bass | 172–176 | minor 9ths | rolling breaks, reese sub, airy pads | speed, realtime, performance |
+| Afro-house | 118–124 | minor | log drum, shakers, marimba, deep sub | warm, global, payments |
+| Neo-classical + electronic (Ólafur Arnalds) | 80–110 | minor | felt piano, strings, glitchy beat, sub swells | privacy, calm, focus, premium hardware |
+| Musique concrète electronic | any | any | a full electronic track built from the product's real sounds, processed | the most ownable option; signature-heavy films |
+| Trap / half-time cinematic | 140 (70) | minor | 808 sub glides, crisp hats, dark pads, impacts | confident, bold, creator tools |
+
+Novelty genres (pizzicato comedy, ukulele, lounge, jazz trio, chiptune, polka) read as stock in launch films. Use them only when the brief is explicitly a comedy/cartoon piece, and even then produce them like a modern record (sub, compression, designed transitions).
 
 ## The signature sound
 
-One sound, 0.3–2 s, that could only belong to this product. It plays at the logo/CTA button and optionally once earlier as a setup, so the ending pays it off.
+One sound, 0.3–2 s, that could only belong to this product. It plays at the logo/CTA button, and optionally once earlier as a setup so the ending pays it off.
 
-- Build it from the metaphor: a suitcase latch + a soft bell, a light-switch click into a warm chord, a terminal bell pitched to the score's tonic.
-- **Pitch it to the score's key** (`pitch` in semitones on the clip, or ask for the note in the prompt). A signature in a different key from the score is the most common "pasted on" tell.
+- Build it from the metaphor, then **design** it: a real latch layered with a tonal synth ping and a sub drop; a switch click into a filtered chord stab; a mechanism tick through a pitched delay.
+- **Pitch it to the score's analyzed key** (clip `pitch`). An out-of-key signature is the most common "pasted on" tell.
 - If it's tonal, make it 2–4 notes that outline the tonic chord: the score's final chord + signature = the sonic logo.
 
-## Banned defaults (unless the brief explicitly asks)
+## Banned
 
-- Numpy/hand-synthesized beds (supersaws, sine blips, noise risers) as the score.
-- Generic stock SFX packs (the same `whoosh`, `riser`, `impact`, `glitch`, `chime` in every video) and top-of-library music hits.
-- The trio "riser into bass impact into whoosh" as the shape of every reveal.
-- Corporate ukulele/glockenspiel/clap-along, "inspiring" piano + strings for tech, generic future-bass drops.
-- A riser before every section change; a whoosh on every cut; a click on every UI element.
+- Numpy/hand-synthesized music beds. (Designed sub drops via `sfx.py sub` are fine: that's a sound-design layer, not a score.)
+- Stock SFX packs reused across films, and top-of-library music.
+- Literal cartoon foley (boings, gulps, yawns, springs, slide whistles) in a premium film. For a character, use tonal designed blips: short pitched synth or processed-voice gestures in key.
+- Unsynced transitions: a whoosh on a cut with no motion, a riser that doesn't resolve into a hit or drop.
+- A score with no sub, or a master quieter than −16 LUFS for a music-led film.
 
 ## `audio/SOUND.md` template
 
 ```markdown
 # <Film name>: sound
 
-Concept: <one sentence: what this product sounds like and why>
-Category cliché we're avoiding: <...>
-Genre/feel: <...>   Tempo: <bpm>   Key/mode: <...>   Lead: <instrument>   Texture: <...>
-Refs (feel, not copy): <artist/track>, <artist/track>
+Concept: <one sentence: premium grammar + what this product sounds like>
+Sub-genre/texture: <...>   Tempo: <bpm>   Key/mode: <...>   Lead sound: <...>
+Product palette: <real-world sounds from the product's metaphor, and how they're processed into the track>
+Refs (feel, not copy): <real launch film or artist>, <...>
 Signature sound: <description> (pitched to <note>), plays at <t>s (setup at <t>s)
 Banned this film: <...>
 
 ## Music map
-| out time | section | what happens musically | why (picture) |
-|---|---|---|---|
-
-## Hit list
-| t | tier | moment | sound idea (layers) | align |
+| out time | section | energy (1-5) | what happens musically | why (picture) |
 |---|---|---|---|---|
 
-## Beds
-<ambience / foley, where they enter and leave>
+## Hit list
+| t | tier | moment | sound idea (layers incl. sub) | align |
+|---|---|---|---|---|
 
 ## Mix intent
-<what should be loudest when, where the air is, how it ends>
+<loudness target, where it drops, where the air is, how it ends>
 ```

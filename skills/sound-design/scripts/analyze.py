@@ -22,6 +22,7 @@ import soxr
 from scipy.signal import butter, sosfiltfilt
 
 import _common as C
+import tonal
 
 SR = C.SR
 
@@ -106,21 +107,37 @@ def main():
     events = sorted(set(spot.get("cuts", []) + spot.get("motion", []) + [m["t"] for m in spot.get("marks", [])]))
     sync_rows = []
     if sfx_stem is not None and placed:
-        for p in placed:
-            if p["bus"] != "sfx" or p["align"] != "peak":
+        seen_a = set()
+        for p in placed:  # one row per moment: layered hits are judged by their combined attack
+            if p["bus"] != "sfx" or p["align"] not in ("peak", "attack") or round(p["anchor"], 3) in seen_a:
                 continue
+            seen_a.add(round(p["anchor"], 3))
             a0 = p["anchor"]
-            seg = sfx_stem[..., max(0, int((a0 - 0.12) * SR)): int((a0 + 0.12) * SR)]
+            w0 = max(0, a0 - 0.12)
+            seg = sfx_stem[..., int(w0 * SR): int((a0 + 0.12) * SR)]
             if not seg.shape[-1]:
                 continue
-            got = max(0, a0 - 0.12) + C.peak_time(seg)
+            env, et = C.rms_env(seg, win=0.003, hop=0.0005)
+            # attack = the biggest energy rise near the anchor (robust to tails of earlier sounds still ringing)
+            k = 30  # 15 ms look-back
+            rise = np.array([env[i] - env[max(0, i - k):i + 1].min() for i in range(len(env))])
+            near_a = np.abs(w0 + et - a0) <= 0.08
+            layers = [q for q in placed if q["bus"] == "sfx" and abs(q["anchor"] - a0) < 1e-3]
+            if any(q["align"] == "attack" for q in layers):
+                got = w0 + float(et[np.argmax(np.where(near_a, rise, -1e9))])
+            else:  # peak-aligned (whooshes): the loudest point near the anchor
+                got = w0 + float(et[np.argmax(np.where(near_a, env, -1e9))])
             err = (got - a0) * 1000
             near = min(events, key=lambda e: abs(e - a0)) if events else None
             dist = (a0 - near) * 1000 if near is not None else None
-            sync_rows.append((p["label"], a0, err, dist))
+            label = " + ".join(q["label"] for q in layers)
+            sync_rows.append((label, a0, err, dist))
+        moments = {round(m["anchor"], 3): m["err_ms"] for m in render.get("moments", [])}
+        if moments:  # placement-verified timing beats stem detection (overlapping sounds fool the detector)
+            sync_rows = [(l, a, moments.get(round(a, 3), e), d) for l, a, e, d in sync_rows]
         off = [r for r in sync_rows if abs(r[2]) > frame * 1000]
         check("hits land on their frame", not off,
-              f"{len(sync_rows) - len(off)}/{len(sync_rows)} peak-aligned hits within 1 frame ({frame * 1000:.0f} ms)"
+              f"{len(sync_rows) - len(off)}/{len(sync_rows)} hit moments attack within 1 frame ({frame * 1000:.0f} ms)"
               + ("; off: " + ", ".join(f"{l}@{a:.2f}s {e:+.0f}ms" for l, a, e, _ in off) if off else ""))
         if events:
             stray = [r for r in sync_rows if r[3] is not None and abs(r[3]) > 1.5 * frame * 1000]
@@ -186,8 +203,20 @@ def main():
     energy = {n: float(np.mean(band(mm, lo, hi) ** 2)) for n, lo, hi in spec_bands}
     tot = sum(energy.values()) + 1e-12
     share = {k: round(100 * v / tot, 1) for k, v in energy.items()}
-    check("tonal balance", share["sub <60"] < 35 and share["air >6k"] < 12 and share["presence 2-6k"] > 2,
-          " | ".join(f"{k} {v}%" for k, v in share.items()))
+    ref_name = sess.get("master", {}).get("match") or "launch"
+    ref = tonal.load_ref(ref_name)
+    hz, dev = tonal.deviation(x, ref)
+    groups = tonal.group_report(hz, dev)
+    off = [(g, d) for g, d in groups if abs(d) > 3]
+    check(f"tonal balance vs {ref_name} films", not off,
+          " | ".join(f"{g} {d:+.1f}" for g, d in groups) + " dB outside the reference range"
+          + ("; " + ", ".join(("missing " if d < 0 else "too much ") + g for g, d in off)
+             + " (master.match fixes small gaps; missing sub needs a source: music bus `sub`, or sub layers on hits)"
+             if off else ""))
+    refl = ref.get("loudness", {}).get("integrated_lufs")
+    if refl:
+        notes.append(f"reference films master at {min(refl):.0f}..{max(refl):.0f} LUFS (median {np.median(refl):.1f}); "
+                     f"this mix is {summ['I']:.1f}")
 
     # ---------- picture ----------
     import matplotlib

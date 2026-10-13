@@ -110,6 +110,13 @@ def peak_time(x, sr=SR) -> float:
     return float(t[np.argmax(env >= top - 1.0)])
 
 
+def attack_time(x, sr=SR, within_db=6.0) -> float:
+    """When the sound arrives: first moment within `within_db` of its loudest 3 ms. Use for clicks, impacts, subs
+    (their attacks must stack on the frame); `peak_time` suits swells and whooshes whose loudest point is the sync."""
+    env, t = rms_env(x, sr, win=0.003, hop=0.0005)
+    return float(t[np.argmax(env >= env.max() - within_db)])
+
+
 def fade(x, fin=0.0, fout=0.0, sr=SR, shape="cos"):
     x = x.copy()
     n = x.shape[-1]

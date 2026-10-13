@@ -18,7 +18,7 @@ Spotting is the session where the director and the sound team watch the cut and 
 | B | 3–8 | about level | key UI action, section cut, stat landing | 1–2 layers, short |
 | C | as needed | 8–12 dB under | typing, list items, cursor clicks, toggles | single, round-robin variants, often band-limited |
 
-If you're spotting more than 7 events per 10 s, you're scoring a toy. Delete C-ticks first, then B-hits that aren't story beats.
+Reference launch films land 1–16 accents per 10 s (median ~9), counting music hits. Density is fine when it's *designed*: abstract, layered, mixed under the music, and in key. What reads as a toy is literal cartoon foley on every action. If you're placing more than ~7 SFX per 10 s, make the extra ones C-ticks (low, filtered, round-robin) and let the score carry the accents.
 
 ## Sync rules
 
