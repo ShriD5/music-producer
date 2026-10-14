@@ -20,6 +20,19 @@ Then ask your agent: *"Produce the audio for renders/launch.mp4"*.
 
 A great human producer still wins on taste. This takes your agent from "same stock loop on every video" to launch-film grammar in one run.
 
+## There, fixed it
+
+These top launch videos shipped with **no sound at all**. Four agents, each with only this skill and a $2 cap, scored one each: concept, music, designed SFX, mix and master.
+
+| Film | What the agent made it sound like | QA | |
+|---|---|---|---|
+| [Linear: "Issue tracking is dead"](https://x.com/linear/status/2036502198062821842) | a cold, precise trailer pulse that multiplies with the issue glyphs until the grid whites out, holds its breath, then one decisive keystroke-and-boom … | -13.1 LUFS, 4/4 hits on the frame | [recipe](examples/linear-issue-tracking-dead) |
+| [Cursor: Origin](https://x.com/cursor_ai/status/2089399057659596847) | Git hosting as a glitch record. A tight IDM / minimal tech-house track whose percussion is micro-edited keyboard clicks and commit "ticks", and whose … | -13.0 LUFS, 12/12 hits on the frame | [recipe](examples/cursor-origin) |
+| [Notion: Dashboards](https://x.com/NotionHQ/status/2031098248941940790) | a felt-piano close-up that pulls back into a wide, confident neo-classical electronic groove, the way the film pulls from one menu item out to the bir… | -13.0 LUFS, 10/10 hits on the frame | [recipe](examples/notion-dashboards) |
+| [Figma: Dev Mode in Codex](https://x.com/figma/status/2104994048381792487) | a warm, bouncy organic synth-pop record that gets built while you watch: plucked "shape" notes snap together into a groove the way frames turn into a … | -13.0 LUFS, 12/12 hits on the frame | [recipe](examples/figma-devmode-codex) |
+
+Music cost $0.24–0.96 per film.
+
 ## What it does
 
 Ask an agent for audio and you get the same thing every time: one stock bed, the same riser into a bass impact into a whoosh, flat levels, no mastering. Or it writes a synth track in numpy that sounds like every other synth track it has written. This skill gives it a producer's workflow:

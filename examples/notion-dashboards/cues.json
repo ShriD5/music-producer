@@ -1,0 +1,18 @@
+[
+ {"id": "drop-snap", "provider": "eleven", "dur": 0.6, "n": 3, "influence": 0.5, "query": "card snap",
+  "prompt": "a soft felt piano hammer striking a muted string together with a crisp paper card snapping flat onto a desk, one tight transient, close-mic, dry, no reverb, no music"},
+ {"id": "drop-body", "provider": "eleven", "dur": 0.8, "n": 3, "influence": 0.45, "query": "felt mallet thump",
+  "prompt": "deep soft felt-mallet thump on a large wooden box, short and warm, close-mic, dry, no reverb, no music"},
+ {"id": "drop-swell", "provider": "eleven", "dur": 1.2, "n": 3, "influence": 0.45, "keep_head": true, "query": "reverse piano",
+  "prompt": "reversed felt piano chord swelling up, breathy and soft, 1.2 seconds, ending abruptly, no drums, no reverb tail"},
+ {"id": "chime", "provider": "eleven", "dur": 1.5, "n": 3, "influence": 0.5, "query": "piano arpeggio",
+  "prompt": "three soft felt piano notes rising quickly, a major triad arpeggio, glassy and clear, close-mic, dry, gentle, no other instruments"},
+ {"id": "pullback", "provider": "eleven", "dur": 0.7, "n": 3, "influence": 0.45, "query": "air swish",
+  "prompt": "wide soft airy pull-back swoosh, like air drawn through a tube, smooth and clean, 0.6 seconds, modern, not a cinematic whoosh, no music"},
+ {"id": "pushin", "provider": "eleven", "dur": 0.5, "n": 2, "influence": 0.45, "query": "paper swish",
+  "prompt": "quick soft paper swish moving forward, 0.4 seconds, close, dry, no music"},
+ {"id": "tab-glitch", "provider": "eleven", "dur": 0.5, "n": 3, "influence": 0.45, "query": "digital glitch",
+  "prompt": "short crisp digital glitch stutter with a soft paper flick, 0.3 seconds, dry, no music"},
+ {"id": "tick", "provider": "eleven", "dur": 0.5, "n": 2, "influence": 0.4, "query": "soft tap",
+  "prompt": "tiny soft felt tap on a wooden piano key, very short, close-mic, dry, no music"}
+]

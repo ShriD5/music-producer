@@ -1,0 +1,21 @@
+{
+  "styles": ["neo-classical electronic", "felt piano lead", "116 bpm", "F# minor",
+             "minimal, clean, wide stereo", "crisp modern mix", "great production quality", "instrumental"],
+  "negative": ["vocals", "choir", "supersaw", "trap hi-hats", "ukulele", "pizzicato", "lo-fi hiss"],
+  "chunks": [
+    {"name": "Clarity", "until": 5.7, "styles": ["solo felt piano only", "close-mic soft hammers", "intimate"],
+     "negative": ["drums", "strings", "beat"],
+     "text": "{felt piano alone starts immediately on beat 1, clear repeating eighth-note motif, no fade in, no drums}"},
+    {"name": "Unfold", "until": 11.3, "styles": ["felt piano", "soft cello and violins enter", "sparse glitch clicks", "low sub swell"],
+     "negative": ["kick drum", "full beat"],
+     "text": "{strings enter softly, a few glitchy clicks, tension builds quietly, still no kick, last beat almost silent}"},
+    {"name": "Confident", "until": 18.5, "styles": ["full glitchy electronic beat", "punchy kick", "deep sub bass", "string ostinato", "felt piano motif"],
+     "adherence": "high",
+     "text": "{full beat, kick and sub bass hit together on beat 1, big confident entrance, driving groove}"},
+    {"name": "Lift", "until": 23.7, "styles": ["full glitchy beat", "deep sub bass", "strings climb higher", "piano motif up an octave"],
+     "text": "{same groove, bigger, strings climb toward a final hit}"},
+    {"name": "Button", "until": 26.7, "styles": ["final unison hit", "piano chord and strings ring out", "sub decays"],
+     "negative": ["drums"],
+     "text": "{one big final hit on beat 1 with piano chord, strings and sub, then let it ring out, no more drums}"}
+  ]
+}

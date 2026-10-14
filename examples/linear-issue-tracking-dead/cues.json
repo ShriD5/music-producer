@@ -1,0 +1,66 @@
+[
+ {
+  "id": "hook",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 1.0,
+  "influence": 0.45,
+  "query": "low digital thump",
+  "prompt": "deep dark digital low thump with a crisp mechanical keyboard key-switch click on top, single short hit, close-mic, dry, no reverb, no music"
+ },
+ {
+  "id": "tick",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 0.5,
+  "influence": 0.4,
+  "query": "tiny digital tick",
+  "prompt": "tiny crisp digital pixel tick, a single LED dot switching on, very short, high-pitched, clean, dry, no reverb, no music"
+ },
+ {
+  "id": "swarm",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 2.0,
+  "influence": 0.45,
+  "keep_head": true,
+  "query": "granular riser",
+  "prompt": "granular digital swarm riser, thousands of tiny electronic clicks multiplying and rising in pitch and density, building tension for 2 seconds, ending abruptly, no drums, no music"
+ },
+ {
+  "id": "hit-trans",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 0.8,
+  "influence": 0.45,
+  "query": "keyboard key slam",
+  "prompt": "hard mechanical keyboard key-switch slam layered with a sharp digital crack, single tight punchy transient, close-mic, dry, no reverb, no music"
+ },
+ {
+  "id": "hit-body",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 2.5,
+  "influence": 0.45,
+  "query": "deep impact boom",
+  "prompt": "massive deep cinematic trailer impact boom, low and heavy, dark, short natural decay, dry, no reverb, no music, no metallic ring"
+ },
+ {
+  "id": "signature",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 1.8,
+  "influence": 0.5,
+  "query": "glass ping",
+  "prompt": "single crisp mechanical key click followed by a pure glassy sine ping of two notes, C sharp then G sharp a fifth above, clean, precise, soft decay, dry, no music"
+ },
+ {
+  "id": "hit-mid",
+  "provider": "eleven",
+  "n": 3,
+  "dur": 1.5,
+  "influence": 0.5,
+  "query": "heavy impact rumble",
+  "prompt": "heavy dark cinematic impact, distorted gritty low-mid punch around 150 to 400 Hz with a short dark metallic rumble tail, 1.5 seconds, tight attack, dry, no reverb, no music, no sub only"
+ }
+]

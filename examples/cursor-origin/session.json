@@ -1,0 +1,374 @@
+{
+ "duration": 30.9,
+ "video": "renders/video.mp4",
+ "master": {
+  "lufs": -13,
+  "tp": -1.0,
+  "glue": true,
+  "match": "launch"
+ },
+ "room": {
+  "size": 0.25,
+  "damping": 0.6,
+  "predelay_ms": 12,
+  "hpf": 300,
+  "lpf": 8000,
+  "return_db": -5
+ },
+ "buses": {
+  "music": {
+   "preset": "music",
+   "gain_db": 0,
+   "eq": [
+    {
+     "type": "highshelf",
+     "hz": 6000,
+     "db": -2.5
+    }
+   ],
+   "clip_db": 3
+  },
+  "sfx": {
+   "preset": "sfx",
+   "send": 0.12,
+   "clip_db": 2
+  }
+ },
+ "clips": [
+  {
+   "bus": "music",
+   "file": "audio/music/fit-lim.wav",
+   "at": 0,
+   "label": "score"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/glitch-stutter-1.wav",
+   "at": 0.4,
+   "align": "attack",
+   "gain_db": -5,
+   "label": "introducing glitch"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/zoom-swish-1.wav",
+   "at": 6.37,
+   "align": "peak",
+   "gain_db": -7,
+   "width": 1.3,
+   "label": "zoom +New"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/key-press-2-rr1.wav",
+   "at": 7.1,
+   "align": "attack",
+   "gain_db": -15,
+   "lpf": 6000,
+   "pan": -0.1,
+   "label": "type 1"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/key-press-2-rr2.wav",
+   "at": 7.42,
+   "align": "attack",
+   "gain_db": -16.5,
+   "lpf": 6000,
+   "pan": 0.05,
+   "label": "type 2"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/key-press-2-rr3.wav",
+   "at": 7.78,
+   "align": "attack",
+   "gain_db": -15.5,
+   "lpf": 6000,
+   "pan": 0.12,
+   "label": "type 3"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ui-click-1.wav",
+   "at": 8.6,
+   "align": "attack",
+   "gain_db": -6,
+   "pan": 0.15,
+   "label": "create repo click"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ui-click-1-rr1.wav",
+   "at": 11.0,
+   "align": "attack",
+   "gain_db": -6,
+   "label": "sync click"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/sync-swell-1.wav",
+   "at": 11.433,
+   "align": "end",
+   "gain_db": -9,
+   "width": 1.3,
+   "send": 0.2,
+   "label": "sync pull"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/menu-blip-1.wav",
+   "at": 16.8,
+   "align": "attack",
+   "gain_db": -9,
+   "send": 0.2,
+   "label": "ask cursor"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ping-2.wav",
+   "at": 20.2,
+   "align": "attack",
+   "pitch": -3.99,
+   "gain_db": -9,
+   "pan": -0.3,
+   "send": 0.3,
+   "label": "merge branch A (D)"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ping-2.wav",
+   "at": 20.27,
+   "align": "attack",
+   "pitch": 1.01,
+   "gain_db": -10,
+   "pan": 0.3,
+   "send": 0.3,
+   "label": "merge branch B (G)"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/impact-2.wav",
+   "at": 20.833,
+   "align": "attack",
+   "gain_db": -3,
+   "send": 0.1,
+   "label": "drop impact"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/body-2.wav",
+   "at": 20.833,
+   "align": "attack",
+   "gain_db": -6,
+   "lpf": 2000,
+   "label": "drop body"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/sub-drop.wav",
+   "at": 20.833,
+   "align": "attack",
+   "gain_db": -7,
+   "send": 0,
+   "label": "drop sub"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/riser-2.wav",
+   "at": 27.899,
+   "align": "end",
+   "gain_db": -9,
+   "width": 1.3,
+   "label": "logo riser"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/impact-2.wav",
+   "at": 27.9,
+   "align": "attack",
+   "gain_db": -4,
+   "send": 0.12,
+   "label": "logo impact"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/sub-logo.wav",
+   "at": 27.9,
+   "align": "attack",
+   "gain_db": -6,
+   "send": 0,
+   "label": "logo sub"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ping-2.wav",
+   "at": 27.9,
+   "align": "attack",
+   "pitch": 1.01,
+   "gain_db": -6,
+   "send": 0.32,
+   "label": "signature G"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/ping-3.wav",
+   "at": 27.9,
+   "align": "attack",
+   "pitch": -3.06,
+   "gain_db": -7,
+   "send": 0.32,
+   "label": "signature D"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/shimmer-1.wav",
+   "at": 27.9,
+   "align": "start",
+   "gain_db": -13,
+   "hpf": 2000,
+   "width": 1.5,
+   "send": 0.35,
+   "fade_out": 0.6,
+   "label": "logo shimmer"
+  }
+ ],
+ "automation": {
+  "music": {
+   "gain": [
+    [
+     0,
+     0
+    ],
+    [
+     17.83,
+     0
+    ],
+    [
+     18.2,
+     -2
+    ],
+    [
+     20.4,
+     -3
+    ],
+    [
+     20.45,
+     -30
+    ],
+    [
+     20.81,
+     -30
+    ],
+    [
+     20.833,
+     0
+    ],
+    [
+     27.4,
+     0
+    ],
+    [
+     27.45,
+     -30
+    ],
+    [
+     27.88,
+     -30
+    ],
+    [
+     27.9,
+     0
+    ],
+    [
+     28.35,
+     0
+    ],
+    [
+     28.6,
+     -60
+    ],
+    [
+     30.9,
+     -60
+    ]
+   ],
+   "lpf": [
+    [
+     0,
+     20000
+    ],
+    [
+     17.83,
+     20000
+    ],
+    [
+     18.3,
+     4000
+    ],
+    [
+     20.4,
+     1200
+    ],
+    [
+     20.81,
+     1200
+    ],
+    [
+     20.833,
+     20000
+    ],
+    [
+     25.3,
+     20000
+    ],
+    [
+     25.36,
+     1500
+    ],
+    [
+     27.4,
+     12000
+    ],
+    [
+     27.88,
+     12000
+    ],
+    [
+     27.9,
+     20000
+    ],
+    [
+     30.9,
+     20000
+    ]
+   ],
+   "hpf": [
+    [
+     0,
+     20
+    ],
+    [
+     17.83,
+     20
+    ],
+    [
+     18.2,
+     180
+    ],
+    [
+     20.81,
+     180
+    ],
+    [
+     20.833,
+     20
+    ],
+    [
+     30.9,
+     20
+    ]
+   ]
+  }
+ }
+}

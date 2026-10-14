@@ -1,0 +1,115 @@
+{
+ "styles": [
+  "glitch IDM",
+  "minimal tech-house",
+  "136 bpm",
+  "E minor",
+  "micro-edited percussion made from mechanical keyboard clicks",
+  "bitcrushed stutter edits",
+  "deep clean sub bass",
+  "dry punchy kick",
+  "glassy FM synth pluck lead",
+  "crisp modern mix",
+  "sidechained",
+  "great production quality",
+  "instrumental",
+  "energetic",
+  "loud and dense from the start"
+ ],
+ "negative": [
+  "vocals",
+  "supersaw",
+  "orchestral",
+  "piano",
+  "strings",
+  "guitar",
+  "corporate",
+  "big room EDM",
+  "lo-fi",
+  "trap"
+ ],
+ "chunks": [
+  {
+   "name": "Hook",
+   "until": 3.93,
+   "styles": [
+    "kick and sub bass from the first beat",
+    "stuttered keyboard-click percussion",
+    "FM pluck motif"
+   ],
+   "adherence": "high",
+   "text": "{full beat starts immediately on beat 1 at full volume: kick, sub bass and glitch click percussion together, no intro, no fade in}"
+  },
+  {
+   "name": "Build",
+   "until": 9.83,
+   "styles": [
+    "rolling sub bass",
+    "closed hats",
+    "driving"
+   ],
+   "adherence": "high",
+   "text": "{groove keeps driving at full volume, rolling bass, crisp hats added}"
+  },
+  {
+   "name": "Lift",
+   "until": 13.57,
+   "styles": [
+    "offbeat pluck chops",
+    "open hats"
+   ],
+   "text": "{same full groove, adds offbeat glassy pluck chops, energy lifts}"
+  },
+  {
+   "name": "Groove",
+   "until": 17.83,
+   "styles": [
+    "full minimal groove",
+    "glitch fills"
+   ],
+   "text": "{full groove, short glitch stutter fill every two bars}"
+  },
+  {
+   "name": "Stutter break",
+   "until": 20.83,
+   "styles": [
+    "no kick",
+    "stutter-gated pluck",
+    "filter closing"
+   ],
+   "adherence": "high",
+   "text": "{kick and bass stop, only a stutter-gated pluck with the filter closing, tension}"
+  },
+  {
+   "name": "Drop",
+   "until": 24.9,
+   "styles": [
+    "heavy kick",
+    "big sub",
+    "bitcrushed lead",
+    "full energy"
+   ],
+   "adherence": "high",
+   "text": "{full drop hits on beat 1, heaviest kick and sub of the track, bitcrushed glitch lead}"
+  },
+  {
+   "name": "Rise",
+   "until": 27.9,
+   "styles": [
+    "glitch snare roll",
+    "rising filter"
+   ],
+   "text": "{snare and glitch roll building, filter rising, last half bar stops}"
+  },
+  {
+   "name": "Button",
+   "until": 32.0,
+   "styles": [
+    "single unison hit",
+    "ring out"
+   ],
+   "adherence": "high",
+   "text": "{one big unison hit with sub on beat 1, then let it ring out, no more drums}"
+  }
+ ]
+}

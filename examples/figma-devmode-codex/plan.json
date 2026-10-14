@@ -1,0 +1,115 @@
+{
+  "styles": [
+    "organic electronic synth-pop",
+    "nu-disco bounce",
+    "121 bpm",
+    "A major",
+    "plucked kalimba-like synth lead",
+    "glassy FM bell arpeggio",
+    "round analog synth bass",
+    "deep sub bass",
+    "tight punchy live-feel drums",
+    "sidechained warm pads",
+    "playful, warm, colourful",
+    "crisp modern mix",
+    "wide stereo",
+    "great production quality",
+    "instrumental"
+  ],
+  "negative": [
+    "vocals",
+    "vocal chops",
+    "supersaw",
+    "dubstep",
+    "orchestral",
+    "pizzicato",
+    "ukulele",
+    "corporate",
+    "lo-fi hip hop"
+  ],
+  "chunks": [
+    {
+      "name": "Intro",
+      "until": 5.25,
+      "styles": [
+        "kalimba synth hook",
+        "muted kick",
+        "filtered bass"
+      ],
+      "text": "{starts immediately on beat 1: plucked hook, soft kick and sub bass only, sparse, no hats yet}"
+    },
+    {
+      "name": "Groove A",
+      "until": 9.083,
+      "styles": [
+        "bass opens up",
+        "closed hi-hats",
+        "light clap"
+      ],
+      "text": "{bass opens on beat 1, hats and a light clap join, bouncy}"
+    },
+    {
+      "name": "Groove B",
+      "until": 18.667,
+      "styles": [
+        "full groove",
+        "FM bell arpeggio counter-melody"
+      ],
+      "text": "{full groove on beat 1, bell arpeggio answers the hook, steady and playful}"
+    },
+    {
+      "name": "Breakdown",
+      "until": 22.5,
+      "styles": [
+        "drums stop completely",
+        "no bass",
+        "solo plucked hook",
+        "soft pad"
+      ],
+      "text": "{everything drops out on beat 1 except the plucked hook and a soft pad, quiet and intimate, no kick, no bass}",
+      "adherence": "high"
+    },
+    {
+      "name": "Build",
+      "until": 28.167,
+      "styles": [
+        "rising arpeggio",
+        "snare build",
+        "filter opening"
+      ],
+      "text": "{kick returns on beat 1, arpeggio climbs, snare roll builds, filter sweeps up, the last half bar is total silence}",
+      "adherence": "high"
+    },
+    {
+      "name": "Drop",
+      "until": 34.125,
+      "styles": [
+        "four-on-the-floor",
+        "big sub bass",
+        "full synth-pop chorus",
+        "hook on top"
+      ],
+      "adherence": "high",
+      "text": "{huge drop on beat 1 after the silence: full band, four-on-the-floor kick, big sub bass, the hook played big, the loudest part of the track}"
+    },
+    {
+      "name": "Brand",
+      "until": 37.125,
+      "styles": [
+        "half-time bounce",
+        "staccato plucks",
+        "rising"
+      ],
+      "text": "{half-time, bouncy staccato plucks call and answer, rising into the final hit}"
+    },
+    {
+      "name": "Button",
+      "until": 40.5,
+      "styles": [
+        "final unison hit",
+        "ring out"
+      ],
+      "text": "{one big unison hit on beat 1 with sub, then let it ring out, no more drums}"
+    }
+  ]
+}

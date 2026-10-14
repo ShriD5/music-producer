@@ -1,0 +1,17 @@
+{
+  "styles": ["dark cinematic electronic trailer", "minimal", "pulsing analog sub bass ostinato in 16th notes",
+             "sidechained", "tight metallic electronic percussion", "tiny digital ticks", "deep sub",
+             "cold precise synths", "105 bpm", "D minor", "crisp modern mix", "great production quality", "instrumental"],
+  "negative": ["vocals", "choir", "strings", "orchestral braams", "acoustic drum kit", "guitar", "piano",
+               "happy", "corporate", "edm supersaw", "fade in"],
+  "chunks": [
+    {"name": "Pulse", "until": 4.0, "styles": ["sub bass pulse alone", "low pulse hit on beat 1", "sparse ticks"],
+     "text": "{starts immediately on beat 1 with a low pulse hit and the sub ostinato, no fade in, tense and dark}"},
+    {"name": "Build", "until": 9.1, "styles": ["metallic percussion joins", "rising tension", "granular riser"],
+     "adherence": "high",
+     "text": "{tension rises steadily, percussion intensifies, the pulse doubles and the riser climbs to the very end, last half bar cuts to silence}"},
+    {"name": "Hit", "until": 12.2, "styles": ["one massive unison impact", "sub drop", "long ring out"],
+     "adherence": "high",
+     "text": "{one massive unison hit with sub drop on beat 1, then no more drums, only the dark tail ringing out to silence}"}
+  ]
+}

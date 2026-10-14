@@ -1,0 +1,286 @@
+{
+ "duration": 24.933,
+ "video": "renders/video.mp4",
+ "master": {
+  "lufs": -13,
+  "tp": -1.0,
+  "glue": true,
+  "match": "launch"
+ },
+ "room": {
+  "size": 0.3,
+  "damping": 0.55,
+  "predelay_ms": 14,
+  "hpf": 280,
+  "lpf": 8500,
+  "return_db": -4
+ },
+ "buses": {
+  "music": {
+   "preset": "music",
+   "gain_db": 0,
+   "eq": [
+    {
+     "type": "peak",
+     "hz": 450,
+     "db": -1.5,
+     "q": 0.8
+    },
+    {
+     "type": "peak",
+     "hz": 3000,
+     "db": 2.0,
+     "q": 0.7
+    }
+   ]
+  },
+  "sfx": {
+   "preset": "sfx",
+   "send": 0.12
+  }
+ },
+ "clips": [
+  {
+   "bus": "music",
+   "file": "audio/music/score-1.wav",
+   "at": 0,
+   "in": 1.68,
+   "out": 6.48,
+   "fade_out": 0.4,
+   "label": "intro (same take, 2 bars later)"
+  },
+  {
+   "bus": "music",
+   "file": "audio/music/fit.wav",
+   "at": 4.4,
+   "in": 4.4,
+   "fade_in": 0.4,
+   "label": "score (fit)"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/pushin-1.wav",
+   "at": 1.15,
+   "align": "peak",
+   "gain_db": -10,
+   "pan": -0.1,
+   "pan_to": 0.15,
+   "send": 0.1,
+   "label": "push-in"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/chime-2.wav",
+   "at": 2.433,
+   "align": "attack",
+   "pitch": 6.01,
+   "gain_db": -13,
+   "send": 0.25,
+   "hpf": 600,
+   "label": "tooltip chime (setup)"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/tick-1.wav",
+   "at": 4.467,
+   "align": "attack",
+   "gain_db": -15,
+   "lpf": 6000,
+   "pan": 0.35,
+   "label": "edit tick"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/pushin-2.wav",
+   "at": 5.7,
+   "align": "peak",
+   "reverse": true,
+   "gain_db": -11,
+   "width": 1.3,
+   "send": 0.12,
+   "label": "pull-back"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/tick-2.wav",
+   "at": 10.4,
+   "align": "attack",
+   "gain_db": -15,
+   "lpf": 6000,
+   "pan": -0.3,
+   "label": "map lift"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/drop-swell-3.wav",
+   "at": 11.3,
+   "align": "end",
+   "gain_db": -10,
+   "width": 1.3,
+   "send": 0.1,
+   "label": "drop swell"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/drop-snap-1.wav",
+   "at": 11.3,
+   "align": "attack",
+   "gain_db": -3,
+   "send": 0.08,
+   "label": "drop snap"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/drop-body-1.wav",
+   "at": 11.3,
+   "align": "attack",
+   "gain_db": -7,
+   "lpf": 2000,
+   "send": 0.15,
+   "label": "drop body"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/sub-Fs1.wav",
+   "at": 11.3,
+   "align": "attack",
+   "gain_db": -8,
+   "send": 0,
+   "label": "drop sub"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/tab-glitch-1.wav",
+   "at": 21.133,
+   "align": "attack",
+   "gain_db": -7,
+   "pan": -0.15,
+   "send": 0.1,
+   "label": "tab 1"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/tab-glitch-2.wav",
+   "at": 23.2,
+   "align": "attack",
+   "gain_db": -8,
+   "pan": 0.15,
+   "send": 0.1,
+   "label": "tab 2"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/drop-snap-3.wav",
+   "at": 23.7,
+   "align": "attack",
+   "gain_db": -2,
+   "send": 0.08,
+   "label": "button snap"
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/drop-body-2.wav",
+   "at": 23.7,
+   "align": "attack",
+   "gain_db": -6,
+   "lpf": 2000,
+   "send": 0.15,
+   "label": "button body",
+   "fade_out": 0.2
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/sub-Fs1.wav",
+   "at": 23.7,
+   "align": "attack",
+   "gain_db": -7,
+   "send": 0,
+   "label": "button sub",
+   "out": 1.2,
+   "fade_out": 0.5
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/chime-2.wav",
+   "at": 23.7,
+   "align": "attack",
+   "pitch": -5.99,
+   "gain_db": -6,
+   "send": 0.3,
+   "hpf": 250,
+   "label": "signature chime",
+   "out": 0.85,
+   "fade_out": 0.55
+  },
+  {
+   "bus": "sfx",
+   "file": "audio/sfx/pullback-3.wav",
+   "at": 23.85,
+   "align": "peak",
+   "gain_db": -9,
+   "width": 1.4,
+   "send": 0.15,
+   "label": "bird's-eye pull-back"
+  }
+ ],
+ "automation": {
+  "music": {
+   "gain": [
+    [
+     0,
+     0
+    ],
+    [
+     10.7,
+     0
+    ],
+    [
+     10.85,
+     -12
+    ],
+    [
+     11.26,
+     -16
+    ],
+    [
+     11.3,
+     -3
+    ],
+    [
+     11.65,
+     0
+    ],
+    [
+     24.25,
+     0
+    ],
+    [
+     24.93,
+     -14
+    ]
+   ],
+   "lpf": [
+    [
+     0,
+     20000
+    ],
+    [
+     10.6,
+     20000
+    ],
+    [
+     10.85,
+     700
+    ],
+    [
+     11.27,
+     900
+    ],
+    [
+     11.3,
+     20000
+    ]
+   ]
+  }
+ }
+}
