@@ -30,6 +30,14 @@
 - **Make room for an A-hit in a busy score:** gain `[[t-0.05, 0], [t, -3], [t+0.35, 0]]`.
 - Ramps of 20–50 ms sound like edits, 150–600 ms like mixing. Choose deliberately.
 
+## Bus and master options (session.json)
+
+- bus `clip_db`: soft-clip the bus 2–4 dB under its peak (4× oversampled). This is the fix when a score's own peaks drive the master limiter.
+- bus `comp`: `{"threshold_db", "ratio", "attack_ms", "release_ms"}`. Glue/levelling on a bus (VO, ambience); not a peak fix.
+- bus `sub`: `{"octave_db": -8, "shelf_db": 2}`. An octave-down layer plus a 55 Hz shelf, for a bed with no weight.
+- master `match`: `"launch"` (or a path to another reference json). Plus `match_strength` (default 0.8) and `match_max_db` (default 6): how hard bands outside the reference range get pulled back.
+- master `tilt_db`: a broad bright/dark tilt (+ = brighter) before matching.
+
 ## Space and movement
 
 - Everything that should feel physical sends to the room (`send` 0.08–0.35). The A-hit tail sends most, the transient least.
@@ -43,7 +51,7 @@
    - **Loudness lane:** short-term (white) should rise into the reveal, dip in breakdowns, and land the button. A flat white line is a wall of sound: add automation. Spikes far above the white line are hot hits.
    - **Stems lane:** VO (white) clearly above music (blue) wherever VO exists. SFX (yellow) peaks on the dotted anchors and on red/green lines, not floating.
    - **Spectrogram:** vertical stripes should line up with cuts. Long horizontal bright lines that cross section changes mean a tonal clash or ringing. Check the key of the SFX.
-   - **Band share:** sub > 35 % = boomy on headphones and empty on phones; presence < 2 % = dull; air > 12 % = harsh.
+   - **Tonal balance bars:** dB outside the range real launch films live in, per third octave. Green = inside, yellow = slightly out, red = more than 3 dB out. This is the only tonal rule. Ignore raw "energy share" percentages: they're dominated by the lows and mislead.
 3. Fix with the smallest move (clip gain → clip eq → bus eq → automation → swap take → regenerate), re-render, re-analyze.
 4. Mux and run `listen.py` once the measurements pass.
 
@@ -53,7 +61,8 @@
 |---|---|
 | "VO masked around 12.3 s" | raise `mid_extra_db`, or an automation dip there, or a static music eq -2 dB @ 2.5–3.5 kHz |
 | limiter GR > 4 dB | find the spike in the loudness lane, lower that clip 2–4 dB |
-| hit "off by +40 ms" | the take has a pre-transient (breath/swell): set `align: peak` or trim with `in` |
+| hit "off by +40 ms" | the take has a pre-transient (breath/swell): use `align: attack`, or trim with `in` |
+| limiter > 4.5 dB | stacked hit is the hotspot: lower its loudest layer 2–3 dB. Score is the hotspot: music bus `"clip_db": 3` (and `sfx` `"clip_db": 2`). Measured on two showcase films: 4.5 → 2.3 dB and 5.3 → 3.9 dB of limiting. Don't reach for `comp`: compressing the score lowers its loudness, the master makes it back up, and the hits peak harder (4.5 → 7.4 dB in the same test). |
 | hit vanishes on phones | add a transient layer with 1–4 kHz content, or `eq` +3 dB @ 2 kHz on the hit |
 | LRA < 3 | not enough dynamics: automate breakdowns down 3–6 dB, add the air moment |
 | LRA > 12 | intro or a breakdown is too quiet; raise it or shorten it |

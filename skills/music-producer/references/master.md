@@ -29,7 +29,7 @@ Pick one in SOUND.md. If the film will be posted to several places, master for t
 - A-hits keep energy above 300 Hz
 - mono fold-down loses < 3 LU, L/R correlation > 0.2
 - last 50 ms below -35 dBFS (resolved ending); first 300 ms not silent
-- band shares: sub < 35 %, presence > 2 %, air < 12 %
+- tonal balance inside the launch reference range (third octaves; the analysis.png bars)
 - ≤ 7 SFX events per 10 s
 
 ## Deliverables

@@ -105,26 +105,27 @@ def gen(a):
         prompt += "".join([f" {bpm:g} BPM." if bpm else "", f" Key {key}." if key else ""])
     print(f"music: {prov} ({info.get('note') or info.get('endpoint')}), {a.n} take(s), ~${info['cost'](secs) * a.n:.2f}",
           file=sys.stderr)
-    made, seed0 = [], a.seed or 1000
+    made = []
+    seed0 = a.seed if a.seed is not None else int.from_bytes(__import__("os").urandom(2), "big")  # fresh takes on re-runs
     if prov == "ace":
         outs = P.ace_generate({"out_dir": str(out / ".ace"), "n": a.n, "seed": seed0, "caption": prompt,
                                "duration": secs, "bpm": bpm, "keyscale": key or "", "timesignature": "4",
                                "lm": a.lm, "steps": a.steps})
         for k, o in enumerate(outs):
-            wav = C.to_wav48(o["path"], out / f"{a.name}-{k + 1}.wav")
+            wav = C.to_wav48(o["path"], C.free_name(out, a.name))
             wav.with_suffix(".json").write_text(json.dumps({"provider": "ace", "seed": o["seed"], "caption": prompt,
                                                             "bpm": bpm, "key": key, "lm": a.lm}, indent=2))
             C.log_cost(a.root, "local/ace-step-1.5", 0.0, wav.name)
             made.append(wav)
     for k in range(a.n if prov != "ace" else 0):
         seed = seed0 + k * 7919
-        wav = out / f"{a.name}-{k + 1}.wav"
+        wav = C.free_name(out, a.name)
         if prov == "eleven":
             cp, _ = eleven_plan(plan)
             route = P.eleven_music(cp, seed, wav)
             meta = {"provider": "eleven", "route": route, "seed": seed, "plan": cp}
-            C.log_cost(a.root, f"{route}/elevenlabs-music-v2.5", info["cost"](secs) if route == "fal" else 0.0,
-                       wav.name + ("" if route == "fal" else " (ElevenLabs credits)"))
+            C.log_cost(a.root, f"{route}/elevenlabs-music-v2.5", info["cost"](secs),
+                       wav.name + ("" if route == "fal" else " (paid in ElevenLabs credits; fal-equivalent price logged)"))
         else:
             if prov == "sonilo":
                 payload = {"video_url": a._video_url, "num_samples": 1, "prompt_influence": a.influence}
@@ -240,7 +241,8 @@ def analyze_file(path, quiet=False, plan=None):
     env, et = C.rms_env(x, win=0.5, hop=0.25)
     env = np.maximum(env, -120)
     med0 = float(np.median(env))
-    starts_at = float(et[np.argmax(env > med0 - 20)]) - 0.25
+    fe, ft0 = C.rms_env(x, win=0.05, hop=0.01)
+    starts_at = float(ft0[np.argmax(np.maximum(fe, -120) > med0 - 20)]) - 0.025
     # entrances: biggest 1.5 s energy rises (where a drop / full band arrives)
     lag = 6
     rise = np.r_[np.zeros(lag), env[lag:] - env[:-lag]]
@@ -264,7 +266,7 @@ def analyze_file(path, quiet=False, plan=None):
     loud = np.where(env > med - 20)[0]
     end_t = float(et[loud[-1]]) if len(loud) else dur
     if len(downbeats):
-        tail_beats = [b for b in bt if end_t - 10 <= b <= end_t]
+        tail_beats = [b for b in bt if end_t - 4 <= b <= end_t]
         if tail_beats:
             fr = librosa.time_to_frames(tail_beats, sr=22050, hop_length=hop)
             fr = fr[fr < len(onset)]
@@ -328,17 +330,27 @@ def fit(a):
         x = np.ascontiguousarray(x, dtype=np.float32)
     s2o = lambda s: s / ratio  # source time -> stretched time
     D = a.duration
+    log = []
     start = 0.0
     if a.hit is not None and a.src is not None:
         start = s2o(a.src) - a.hit
     elif a.start:
         start = s2o(a.start)
     pre = np.zeros((2, 0), np.float32)
-    if start < 0:  # source event is earlier than the hit: pad with silence (or let pre-roll SFX carry it)
-        pre = np.zeros((2, int(-start * sr)), np.float32)
+    if start < 0:  # the event comes too early in the take: fill the head with the take's own bars, ending on a downbeat
+        need = -start
+        dbs = [d / ratio for d in info["downbeats"] if d / ratio >= need]
+        if a.head == "fill" and dbs and dbs[0] * sr <= x.shape[-1]:
+            d0 = dbs[0]
+            pre = x[..., int((d0 - need) * sr):int(d0 * sr)]
+            pre = C.fade(pre, fin=min(0.3, need / 4))
+            log.append(f"head: filled {need:.2f}s with the take's own bars ({d0 - need:.2f}-{d0:.2f}s), joined on a downbeat")
+        else:
+            pre = np.zeros((2, int(need * sr)), np.float32)
+            log.append(f"head: {need:.2f}s of silence before the music (use --head fill to reuse the take's bars)")
         start = 0.0
-    body = np.concatenate([pre, x[..., int(start * sr):]], axis=-1)
-    log = [f"source {start * ratio:.3f}s -> output {pre.shape[-1] / sr:.3f}s" + (f" (stretched x{ratio:.4f})" if ratio != 1 else "")]
+    body = xfade_join(pre, x[..., int(start * sr):], ms=30) if pre.shape[-1] else x[..., int(start * sr):]
+    log.append(f"source {start * ratio:.3f}s -> output {pre.shape[-1] / sr:.3f}s" + (f" (stretched x{ratio:.4f})" if ratio != 1 else ""))
 
     if a.end_hit is not None:
         es = info["final_hit"] if a.end_src in (None, "auto") else float(a.end_src)
@@ -362,7 +374,8 @@ def fit(a):
         rest = C.rms_env(body[..., need:])[0].max() if body.shape[-1] - need > C.SR * 0.06 else -120
         body = C.fade(body[..., :need], fin=a.fin, fout=a.fout if rest > -50 else 0.05)
         if rest > -50:
-            log.append(f"music still playing at {D:.2f}s: faded over {a.fout}s (a button ending with --end-hit sounds better)")
+            log.append(f"music still playing at {D:.2f}s: faded over {a.fout}s"
+                       + ("" if a.end_hit is not None else " (a button ending with --end-hit sounds better)"))
     out = pathlib.Path(a.out)
     C.save(out, body)
     print("\n".join(log))
@@ -421,6 +434,8 @@ def main():
     f.add_argument("--bpm", type=float, help="stretch to this tempo (Rubber Band), e.g. a spot.py tempo candidate")
     f.add_argument("--end-hit", type=float, help="output time of the final button (logo / CTA)")
     f.add_argument("--end-src", help="source time of the ending hit, or auto")
+    f.add_argument("--head", choices=["fill", "silence"], default="fill",
+                   help="when --hit/--src shifts the take later: fill the gap with its own bars (default) or silence")
     f.add_argument("--fin", type=float, default=0.0)
     f.add_argument("--fout", type=float, default=1.5)
     f.add_argument("--out", required=True)

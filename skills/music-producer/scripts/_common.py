@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import pathlib
+import re
 import subprocess
 import sys
 import time
@@ -168,8 +169,16 @@ def _req(url, data=None, method=None, headers=None, timeout=120):
     h.update(headers or {})
     body = json.dumps(data).encode() if isinstance(data, (dict, list)) else data
     r = urllib.request.Request(url, data=body, method=method or ("POST" if data is not None else "GET"), headers=h)
-    with urllib.request.urlopen(r, timeout=timeout) as resp:
-        raw = resp.read()
+    try:
+        with urllib.request.urlopen(r, timeout=timeout) as resp:
+            raw = resp.read()
+    except urllib.error.HTTPError as e:
+        msg = e.read().decode(errors="ignore")[:500]
+        if e.code in (401, 403) and re.search(r"locked|balance|top.?up", msg, re.I):
+            sys.exit("fal: account out of credit (" + msg.strip() + "). Top up at https://fal.ai/dashboard/billing, "
+                     "or use your own ElevenLabs key (MUSIC_PRODUCER_ELEVEN_ROUTE=direct), or the free tier "
+                     "(MUSIC_PRODUCER_TIER=free).")
+        sys.exit(f"fal {url.split('?')[0]} -> HTTP {e.code}: {msg}")
     return json.loads(raw) if raw else {}
 
 
@@ -236,6 +245,15 @@ def download(url, dest) -> pathlib.Path:
     with urllib.request.urlopen(url, timeout=300) as r:
         dest.write_bytes(r.read())
     return dest
+
+
+def free_name(directory, stem: str, ext: str = ".wav") -> pathlib.Path:
+    """stem-1, stem-2, ... : the first index not already taken (re-runs add takes instead of overwriting)."""
+    directory = pathlib.Path(directory)
+    k = 1
+    while (directory / f"{stem}-{k}{ext}").exists():
+        k += 1
+    return directory / f"{stem}-{k}{ext}"
 
 
 def to_wav48(src, dest) -> pathlib.Path:

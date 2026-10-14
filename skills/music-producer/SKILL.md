@@ -20,14 +20,14 @@ Run `uv run $SKILL_DIR/scripts/setup.py doctor` first. It shows what works on th
 | Mix, master, analysis | local, free | same |
 | Ears (optional) | `OPENROUTER_API_KEY` + Gemini Flash, ~$0.005 per film | same, or `--model ~google/gemini-pro-latest` |
 
-`auto` picks within the tier, and any call can override it with `--provider`. Keys are read from env vars, then `./.env`, then `~/.config/music-producer/keys.env`. Paid spend is logged per project in `audio/costs.jsonl`: about $0.60 for a lean 40 s film, $1.50–2 with extra takes and foley. If the free music doesn't satisfy the user, offer the paid tier for the score alone. That's where the money buys the most.
+`auto` picks within the tier, and any call can override it with `--provider`. ElevenLabs runs through fal when `FAL_KEY` exists, else your own key; force it with `MUSIC_PRODUCER_ELEVEN_ROUTE=fal|direct` (e.g. when fal runs out of credit). An ElevenLabs **free** plan has no Music API, and its SFX are non-commercial with attribution required, so don't ship a free-plan SFX in a commercial film. `setup.py doctor` reports your plan. Keys are read from env vars, then `./.env`, then `~/.config/music-producer/keys.env`. Paid spend is logged per project in `audio/costs.jsonl`: about $0.60 for a lean 40 s film, $1.50–2 with extra takes and foley. If the free music doesn't satisfy the user, offer the paid tier for the score alone. That's where the money buys the most.
 
 ## Workflow
 
 Do the steps in order. Each has a gate, and the measurement scripts exist so the gates aren't vibes.
 
 ### 1. Picture first
-Audio is cut to a **locked** picture. Get the render (`renders/video.mp4` or similar) and, if the timeline is known (HyperFrames `data-start`, storyboard frame times), write `audio/marks.json` = `[{"t": 5.0, "label": "logo reveal"}, ...]` for the moments that matter. Exact marks beat detection.
+Audio is cut to a **locked** picture. Get the render (`renders/video.mp4` or similar). If the timeline is known (HyperFrames `data-start`, Remotion frames ÷ fps, NLE markers, storyboard times), export it to `audio/marks.json` = `[{"t": 5.0, "label": "logo reveal"}, ...]` now. Otherwise you'll write it in step 3 after seeing the picture. Exact marks beat detection.
 
 ### 2. Sonic identity → `audio/SOUND.md`
 Run `uv run $SKILL_DIR/scripts/ledger.py show` first. Then read `references/sonic-identity.md` and write `audio/SOUND.md`:
@@ -40,7 +40,7 @@ Run `uv run $SKILL_DIR/scripts/ledger.py show` first. Then read `references/soni
 **Gate:** it must differ from the last 3 ledger entries on at least 3 of: genre, tempo band (±15 BPM), key/mode, lead instrument, signature sound. If the brief truly demands similarity (series format), say so in SOUND.md.
 
 ### 3. Spot → cue sheet
-`uv run $SKILL_DIR/scripts/spot.py renders/video.mp4 [--marks audio/marks.json]`, then **Read `audio/spot.png`**. Use it to see what is on screen at every sync point. Using `references/spotting.md`, add to SOUND.md:
+`uv run $SKILL_DIR/scripts/spot.py renders/video.mp4 [--marks audio/marks.json] [--bpm LO HI]`, then **Read `audio/spot.png`**. Use it to see what is on screen at every sync point. To place a hit on its exact frame, `spot.py renders/video.mp4 --zoom 8.5 10.5` makes a 10 fps strip. Write or extend `audio/marks.json` with every moment you'll score (clicks, reveals, logo), then re-run `spot.py --marks` so the analyzer checks hits against them. Using `references/spotting.md`, add to SOUND.md:
 - the **music map**: sections with output times (intro / build / drop / breakdown / button), the one moment of air before the biggest reveal, and where the music ends,
 - the **hit list** with hierarchy: A-hits (1–3 per 30 s: logo, hero reveal, CTA), B-hits (key UI moments, cuts that matter), C-ticks (repeated small UI). Most cuts get **no** sound,
 - ambience/foley beds if the picture has a physical world,
@@ -48,11 +48,11 @@ Run `uv run $SKILL_DIR/scripts/ledger.py show` first. Then read `references/soni
 
 ### 4. Score → `audio/music/`
 Read `references/music.md`. Write `audio/music/plan.json`: sections whose `until` times are the cut times from the music map, plus global styles (genre, instruments, BPM, key). The same plan drives every provider. ElevenLabs renders the sections exactly; prompt-only models (ACE-Step, Lyria, MiniMax) get it folded into a caption with BPM and key.
-`uv run $SKILL_DIR/scripts/music.py gen --plan audio/music/plan.json --n 2` (tier default; `--provider eleven|ace|lyria|...` to choose)
+`uv run $SKILL_DIR/scripts/music.py gen --plan audio/music/plan.json --n 2` (tier default; `--provider eleven|ace|lyria|...` to choose). Re-runs add new takes (`score-3`, `score-4`, ...) with fresh seeds; pass `--seed` to reproduce one.
 Then:
 - generate candidates from **two or three providers** (models differ more than seeds do), then `pack.py` them with a reference film so the user picks by ear,
 - `music.py analyze <takes> --plan audio/music/plan.json` on every candidate (bpm, key, entrances, ending, and the level step at each planned boundary). Pick the take whose A-moment boundaries step up hardest. Use `listen.py --compare` only as a tie-breaker on genericness and artifacts,
-- generated music ignores requested keys and quiet sections more often than not. Tune tonal SFX to the **analyzed** key. Enforce sections with `music.py repaint <take> --start 24 --end 29 --prompt "drums stop, sleepy celesta"` (free, local) or with automation in step 6,
+- generated music ignores requested keys and quiet sections more often than not. Tune tonal SFX to the **analyzed** key. On the free tier, enforce sections with `music.py repaint <take> --start 24 --end 29 --prompt "drums stop, sleepy celesta"` (free, local) (repaint is local ACE-Step only); on the paid tier, or in any case, enforce them with automation in step 6 (gain + lpf dips, drop-outs before the drop),
 - pick one, then `music.py fit` to the exact duration, aligning a source entrance to the reveal (`--hit/--src`), ending on a button (`--end-hit`) or ring-out; `music.py extend` (paid) or a longer `gen` if it's short.
 
 **Gate:** no numpy/hand-synthesized music beds, ever. Synthesis is only for test tones.
@@ -63,7 +63,7 @@ Read `references/sfx.md`. Write `audio/sfx/cues.json`: one cue per hit, layered 
 **Gate:** no stock "SFX pack" sounds reused across films, and no generic "whoosh" on a cut without motion. Recordings are raw material: pitch, layer, filter and room them into this film's world.
 
 ### 6. Mix → `audio/session.json` → `audio/mix/`
-Read `references/mix.md`. Write the session: buses (vo / music / sfx / amb), clips with `align: "peak"` for hits and `"end"` for swells, ducking with a speech-band carve, music automation (pre-drop filter, drop-out of air, swells), pans that follow on-screen motion, and sends into the shared room. Then:
+Read `references/mix.md`. Write the session: buses (vo / music / sfx / amb), clips with `align: "attack"` for hits (clicks, impacts, sub drops, every layer of a stacked hit), `"peak"` for whooshes, and `"end"` for swells and risers, ducking with a speech-band carve, music automation (pre-drop filter, drop-out of air, swells), pans that follow on-screen motion, and sends into the shared room. Then:
 `uv run $SKILL_DIR/scripts/mix.py audio/session.json`
 
 ### 7. Measure, look, fix: at least 2 passes
@@ -82,7 +82,7 @@ Read `references/mix.md`. Write the session: buses (vo / music / sfx / amb), cli
 1. **Premium grammar first, identity inside it.** Modern produced music with sub weight, designed (abstract, layered, in-key) transitions and impacts, loud and dense (−13 LUFS, `master.match: "launch"`). Novelty genres and literal cartoon foley read as stock, however bespoke. See `references/sonic-identity.md`.
 2. **Air before the reveal.** Leave 0.2–1.0 s of drop-out, filtered-down bed, or held breath before the biggest reveal, so the drop hits harder.
 3. **Hierarchy.** At most three A-hits per 30 s, each with a sub layer. Every sound earns its place. If two hits within 0.4 s compete, cut one.
-4. **Sync by transient, not file start.** Hits use `align: peak`, swells use `align: end`, and the analyzer verifies 1-frame accuracy.
+4. **Sync by arrival, not file start.** Hits use `align: attack` (every layer's arrival stacks on the frame), whooshes `align: peak`, swells `align: end`; the mixer verifies each moment to the millisecond.
 5. **One room.** SFX and foley share a reverb send, so things sound recorded in the same space, not pasted on.
 6. **Never repeat a sample audibly.** Repeated hits use round-robin variants.
 7. **Music is edited, not trimmed.** It enters on a downbeat or a strong entrance and ends on a button or a ring-out. Never fade the music out over the logo because the file ran out.

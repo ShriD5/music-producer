@@ -4,7 +4,7 @@
 # ///
 """Measure a mix the way a mix engineer would listen to it, then draw it. You cannot hear: read the PNG.
 
-  uv run analyze.py [audio/mix/mix.wav] [--root .] [--target -14] [--tp -1]
+  uv run analyze.py [audio/mix/mix.wav] [--root .] [--target LUFS] [--tp dBTP]   (defaults: session.master)
 
 Uses audio/mix/stems/*.wav, audio/mix/render.json and audio/spot.json when present.
 Writes audio/mix/report.md, analysis.json, analysis.png. Exit code 1 if a hard check fails.
@@ -122,7 +122,8 @@ def main():
             k = 30  # 15 ms look-back
             rise = np.array([env[i] - env[max(0, i - k):i + 1].min() for i in range(len(env))])
             near_a = np.abs(w0 + et - a0) <= 0.08
-            layers = [q for q in placed if q["bus"] == "sfx" and abs(q["anchor"] - a0) < 1e-3]
+            layers = [q for q in placed if q["bus"] == "sfx" and abs(q["anchor"] - a0) < 1e-3
+                      and q["align"] in ("attack", "peak")]
             if any(q["align"] == "attack" for q in layers):
                 got = w0 + float(et[np.argmax(np.where(near_a, rise, -1e9))])
             else:  # peak-aligned (whooshes): the loudest point near the anchor
@@ -144,9 +145,10 @@ def main():
             if stray:
                 notes.append("hits not on a cut/mark/motion peak (fine if they sit on an action the detector missed; check the contact sheet): "
                              + ", ".join(f"{l}@{a:.2f}s ({d:+.0f}ms from nearest event)" for l, a, _, d in stray[:10]))
-        n_sfx = len([p for p in placed if p["bus"] == "sfx"])
-        dens = 10 * n_sfx / D
-        check("not over-scored", dens <= 7, f"{dens:.1f} SFX events per 10 s (more than ~7 reads as a toy; "
+        anchors = sorted(p["anchor"] for p in placed if p["bus"] == "sfx")
+        moments = [a for k, a in enumerate(anchors) if k == 0 or a - anchors[k - 1] > 0.15]  # layers = one moment
+        dens = 10 * len(moments) / D
+        check("not over-scored", dens <= 7, f"{dens:.1f} sound moments per 10 s, layers counted once (more than ~7 reads as a toy; "
                                            "pick the moments that matter)")
 
     # phone speaker: does each big hit survive a 300 Hz high-pass?
@@ -203,13 +205,20 @@ def main():
     energy = {n: float(np.mean(band(mm, lo, hi) ** 2)) for n, lo, hi in spec_bands}
     tot = sum(energy.values()) + 1e-12
     share = {k: round(100 * v / tot, 1) for k, v in energy.items()}
+    gr = render.get("limiter_max_gr_db")
+    if gr is not None:
+        hot = render.get("limiter_hotspots", [])[:3]
+        check("limiter not squashing", gr <= 4.5, f"max {gr:.1f} dB gain reduction"
+              + (("; worst at " + ", ".join(f"{h['t']:.1f}s ({', '.join(h['playing'])})" for h in hot)
+                  + ". Stacked hit: lower its loudest layer. The score itself: music bus `clip_db` 2-4 (mix.md)") if gr > 4.5 else ""))
     ref_name = sess.get("master", {}).get("match") or "launch"
     ref = tonal.load_ref(ref_name)
     hz, dev = tonal.deviation(x, ref)
     groups = tonal.group_report(hz, dev)
     off = [(g, d) for g, d in groups if abs(d) > 3]
     check(f"tonal balance vs {ref_name} films", not off,
-          " | ".join(f"{g} {d:+.1f}" for g, d in groups) + " dB outside the reference range"
+          " | ".join(f"{g} {abs(d):.1f} dB {'above' if d > 0 else 'below'}" if abs(d) >= 0.05 else f"{g} in range"
+                     for g, d in groups) + " the reference range"
           + ("; " + ", ".join(("missing " if d < 0 else "too much ") + g for g, d in off)
              + " (master.match fixes small gaps; missing sub needs a source: music bus `sub`, or sub layers on hits)"
              if off else ""))
@@ -263,10 +272,14 @@ def main():
     librosa.display.specshow(Sm, sr=22050, hop_length=256, x_axis="time", y_axis="mel", ax=ax[i], cmap="magma")
     deco(ax[i], "mel spectrogram (vertical stripes = hits, horizontal bands = sustained tones / ringing)")
     i += 1
-    ax[i].bar(list(share), list(share.values()), color="#6cf")
+    ax[i].axhspan(-0.01, 0.01, color="#2a2", alpha=0.0)
+    ax[i].bar([f"{h:g}" if h < 1000 else f"{h / 1000:g}k" for h in hz], dev,
+              color=["#f66" if abs(v) > 3 else "#fc3" if abs(v) > 0 else "#4c4" for v in dev])
+    ax[i].axhline(0, color="#888", lw=0.8)
     ax[i].set_facecolor("#181818")
-    ax[i].tick_params(colors="#ccc", labelsize=8)
-    ax[i].set_title("energy share by band (%)", color="w", fontsize=10, loc="left")
+    ax[i].tick_params(colors="#ccc", labelsize=7)
+    ax[i].set_title(f"tonal balance vs {ref_name} films, per third octave: dB outside their typical range "
+                    "(0 = inside; + too much, - too little)", color="w", fontsize=10, loc="left")
     fig.tight_layout()
     fig.savefig(mdir / "analysis.png", dpi=80, facecolor=fig.get_facecolor())
 

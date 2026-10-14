@@ -164,6 +164,15 @@ def sub_enhance(x, octave_db=None, shelf_db=0.0):
     return y.astype(np.float32)
 
 
+def soft_clip(x, clip_db):
+    """tanh soft clip whose knee sits clip_db under the bus peak, at 4x oversampling. 2-4 dB is transparent on most
+    scores and lets the master hit loudness with far less limiting."""
+    up = soxr.resample(x.T, SR, SR * 4).T
+    t = np.abs(up).max() * C.undb(-clip_db)
+    y = (t * np.tanh(up / max(t, 1e-9))).astype(np.float32)
+    return soxr.resample(y.T, SR * 4, SR).T[:, :x.shape[-1]].astype(np.float32)
+
+
 def split3(x, lo=250, hi=5000):
     low = sosfiltfilt(butter(4, lo, "low", fs=SR, output="sos"), x, axis=-1)
     high = sosfiltfilt(butter(4, hi, "high", fs=SR, output="sos"), x, axis=-1)
@@ -229,8 +238,9 @@ def moment_sync(layers):
     same definition used to place them. Catches layers whose attacks smear apart."""
     out = []
     for (bus, anchor), items in layers.items():
+        items = [it for it in items if it[2] in ("attack", "peak")]  # swells (align: end) lead in; not the hit
         aligns = {a for _, _, a in items}
-        if bus != "sfx" or not aligns & {"attack", "peak"}:
+        if bus != "sfx" or not items:
             continue
         s0 = min(s for s, _, _ in items)
         n = max(s + y.shape[-1] for s, y, _ in items) - s0
@@ -277,6 +287,11 @@ def render(sess, root, outdir, mux=False):
         x = pb.Pedalboard(PRESETS[preset]() + eq_board(cfg.get("eq")))(x, SR)
         if preset == "vo" or cfg.get("deess"):
             x = deess(x)
+        if cfg.get("clip_db"):  # shave the bus's peaks with an oversampled soft clipper (lowers peak-to-loudness)
+            x = soft_clip(x, cfg["clip_db"])
+        if cfg.get("comp"):  # tame a hot bus (usually the score) before the master has to
+            cc = {"threshold_db": -14, "ratio": 3.0, "attack_ms": 8, "release_ms": 120, **cfg["comp"]}
+            x = pb.Pedalboard([pb.Compressor(**cc)])(x.astype(np.float32), SR)
         if cfg.get("sub"):
             x = sub_enhance(x, cfg["sub"].get("octave_db"), cfg["sub"].get("shelf_db", 0.0))
         auto = sess.get("automation", {}).get(b, {})
@@ -335,7 +350,7 @@ def render(sess, root, outdir, mux=False):
         x, match_log = tonal.match(x, tonal.load_ref(m["match"]), m.get("match_strength", 0.8), m.get("match_max_db", 6))
     gain = target - meter.integrated_loudness(x.T)
     for _ in range(4):
-        y, gr, gcurve = tp_limit(x * C.undb(gain), tp - 0.15)
+        y, gr, gcurve = tp_limit(x * C.undb(gain), tp - 0.5)  # 0.5 dB spare: AAC encoding adds ~0.2-0.4 dB of peaks
         got = meter.integrated_loudness(y.T)
         if abs(got - target) < 0.15:
             break

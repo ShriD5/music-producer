@@ -5,7 +5,8 @@
 """Spotting pass: read a picture-locked video, find cuts + big motion, suggest tempos that land on the cuts,
 and draw a contact sheet so you can SEE what happens at each sync point before writing cues.
 
-  uv run spot.py renders/video.mp4 [--root .] [--cut 0.28] [--marks marks.json]
+  uv run spot.py renders/video.mp4 [--root .] [--cut 0.28] [--marks marks.json] [--bpm 110 130]
+  uv run spot.py renders/video.mp4 --zoom 8.5 10.5        # 10 fps strip to place a hit on its exact frame
 
 Writes audio/spot.json and audio/spot.png. `--marks` takes [{"t": 5.0, "label": "logo"}] from the edit /
 storyboard; those are exact and beat the detector, so pass them whenever the timeline is known.
@@ -73,13 +74,45 @@ def tempo_fit(times, lo=70, hi=180, tol=0.04):
     return [{"bpm": b, "phase_s": ph, "score": s, "cuts_on_beat": h} for b, ph, s, h in picked]
 
 
+def zoom(a):
+    """10 fps strip between two times, labelled, so hits can be placed on the exact frame."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    t0, t1 = a.zoom
+    ts = np.arange(t0, t1 + 1e-6, 0.1)[:40]
+    cols = 8
+    rows = int(np.ceil(len(ts) / cols))
+    fig = plt.figure(figsize=(cols * 2.4, rows * 1.6), facecolor="#111")
+    with tempfile.TemporaryDirectory() as td:
+        for k, t in enumerate(ts):
+            f = pathlib.Path(td) / f"{k}.png"
+            subprocess.run(["ffmpeg", "-v", "error", "-ss", f"{t:.3f}", "-i", a.video, "-frames:v", "1",
+                            "-vf", "scale=360:-2", str(f)], check=False)
+            ax = fig.add_subplot(rows, cols, k + 1)
+            if f.exists():
+                ax.imshow(plt.imread(str(f)))
+            ax.set_title(f"{t:.2f}s", color="w", fontsize=8)
+            ax.axis("off")
+    fig.tight_layout()
+    out = C.proj(a.root) / f"zoom-{t0:g}-{t1:g}.png"
+    fig.savefig(out, dpi=80, facecolor=fig.get_facecolor())
+    print(f"-> {out} (Read it)")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("video")
     ap.add_argument("--root", default=".")
     ap.add_argument("--cut", type=float, default=0.28, help="scene score that counts as a hard cut")
     ap.add_argument("--marks", help="json list of {t,label} from the timeline")
+    ap.add_argument("--bpm", nargs=2, type=float, default=[70, 180], metavar=("LO", "HI"),
+                    help="tempo range for candidates (your genre's band)")
+    ap.add_argument("--zoom", nargs=2, type=float, metavar=("T0", "T1"),
+                    help="instead: a 10 fps frame strip of T0..T1 (audio/zoom-T0-T1.png) to place hits exactly")
     a = ap.parse_args()
+    if a.zoom:
+        return zoom(a)
 
     dur = C.duration(a.video)
     fps = fps_of(a.video)
@@ -98,7 +131,8 @@ def main():
     motion = [round(float(ts[i]), 3) for i in mot_i if all(abs(ts[i] - c) > 0.25 for c in cuts)]
     marks = json.loads(pathlib.Path(a.marks).read_text()) if a.marks else []
     sync = sorted(set([m["t"] for m in marks] + cuts))
-    tempos = tempo_fit(sync) if len(sync) >= 3 else []
+    # a grid always "fits" 3-5 points; below 6 sync points the candidates mean nothing
+    tempos = tempo_fit(sync, lo=a.bpm[0], hi=a.bpm[1]) if len(sync) >= 6 else []
 
     out = C.proj(a.root)
     data = {"video": str(pathlib.Path(a.video).resolve()), "duration": round(dur, 3), "fps": round(fps, 3),
@@ -111,10 +145,13 @@ def main():
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    points = [0.05] + sync + [max(0, dur - 0.1)]
-    if len(points) < 10:  # sparse edit: add evenly spaced looks
-        points = sorted(set(points + list(np.linspace(0.5, dur - 0.5, 10 - len(points)))))
-    points = points[:40]
+    points = sorted(set([0.05] + sync + [max(0, dur - 0.1)]))
+    filled = []  # no blind stretch longer than 2.5 s between looks
+    for p0, p1 in zip(points, points[1:]):
+        filled.append(p0)
+        k = int((p1 - p0) // 2.5)
+        filled += [p0 + (p1 - p0) * (j + 1) / (k + 1) for j in range(k)]
+    points = (filled + [points[-1]])[:40]
     cols = 5
     rows = int(np.ceil(len(points) / cols))
     fig = plt.figure(figsize=(cols * 3.2, rows * 2.1 + 2.2), facecolor="#111")
@@ -147,6 +184,8 @@ def main():
     print(f"{dur:.2f}s @ {fps:.2f}fps  cuts={len(cuts)}  motion={len(motion)}  marks={len(marks)}")
     print("cuts:", cuts)
     print("motion:", motion)
+    if not tempos:
+        print("tempo: fewer than 6 cuts/marks, no tempo-to-picture suggestion (pick a tempo from the genre)")
     for t in tempos[:4]:
         print(f"tempo {t['bpm']:>6} bpm  phase {t['phase_s']:.3f}s  fit {t['score']:.2f}  ({t['cuts_on_beat']}/{len(sync)} on beat)")
     print(f"-> {out / 'spot.json'}\n-> {out / 'spot.png'}  (Read it: you need to see what is on screen at each point)")

@@ -128,8 +128,8 @@ def gen(a):
                 raw = d / f".{cue['id']}-{k + 1}.raw"
                 if prov == "eleven":
                     route = P.eleven_sfx(cue["prompt"], dur, cue.get("influence", 0.45), cue.get("loop", False), raw)
-                    C.log_cost(a.root, f"{route}/elevenlabs-sfx-v2", info["cost"](dur or 4) if route == "fal" else 0,
-                               raw.stem.lstrip("."))
+                    C.log_cost(a.root, f"{route}/elevenlabs-sfx-v2", info["cost"](dur or 4),
+                               raw.stem.lstrip(".") + ("" if route == "fal" else " (ElevenLabs credits, fal-equivalent)"))
                 else:
                     if prov == "stable":
                         payload = {"prompt": cue["prompt"], "duration": dur or 4, "output_format": "wav",
@@ -212,10 +212,10 @@ def sub(a):
     if a.click:
         y[:int(0.006 * C.SR)] += np.random.default_rng(1).standard_normal(int(0.006 * C.SR)) * 0.25 * np.linspace(1, 0, int(0.006 * C.SR))
     x, _ = normalize(np.vstack([y, y]).astype(np.float32))
-    out = C.proj(a.root) / "sfx" / f"{a.name or 'sub-' + a.note.replace('#', 's')}.wav"
+    out = C.free_name(C.proj(a.root) / "sfx", a.name or "sub-" + a.note.replace("#", "s"))
     C.save(out, C.fade(x, 0, 0.05))
     write_index(a.root)
-    print(f"{out.name}: {f0:.0f}->{f1:.0f} Hz over {a.glide}s, {a.dur}s decay (layer it under the impact, align: peak)")
+    print(f"{out.name}: {f0:.0f}->{f1:.0f} Hz over {a.glide}s, {a.dur}s decay (layer it under the impact with align: attack)")
 
 
 NAMES = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"]
@@ -246,8 +246,10 @@ def tune(a):
         best = min(((c - pc + 6) % 12 - 6 for c in chord), key=abs)
         shift = best - cents / 100
         tonal = "tonal" if clarity > 40 else "noisy (pitch matters less)"
+        to_root = ((root - pc + 6) % 12 - 6) - cents / 100
         print(f"{pathlib.Path(f).name:24s} {NAMES[pc]:>2}{cents:+4.0f}c  ->  pitch {shift:+.2f} st to land on "
-              f"{NAMES[(pc + best) % 12]}  [{tonal}]")
+              f"{NAMES[(pc + best) % 12]}, or {to_root:+.2f} st for the tonic {NAMES[root]} (use the tonic on the "
+              f"final button/logo)  [{tonal}]")
 
 
 def variants(a):

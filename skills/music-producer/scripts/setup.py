@@ -41,6 +41,19 @@ def doctor():
     print(f"ok  free SFX: openverse (no key)")
     for k, cost, what in KEYS:
         print(f"{ok(C.key(k, required=False))} {k:<20} [{cost}] {what}")
+    ek = C.key("ELEVENLABS_API_KEY", required=False)
+    if ek:
+        try:
+            sub = P.http("https://api.elevenlabs.io/v1/user/subscription", headers={"xi-api-key": ek})
+            tier_, used, lim = sub.get("tier"), sub.get("character_count", 0), sub.get("character_limit", 0)
+            print(f"    ElevenLabs plan: {tier_}, {lim - used:,} credits left")
+            if tier_ == "free":
+                print("    ! free plan: no Music API, and SFX are non-commercial with attribution required "
+                      "(credit elevenlabs.io). Use fal or a paid plan for anything you ship.")
+        except SystemExit as e:
+            print(f"    ElevenLabs key check failed: {e}")
+    if C.key("FAL_KEY", required=False):
+        print("    fal balance isn't readable via API; an empty balance shows up as a clear error on the first call")
     t = P.tier()
     print(f"\ntier: {t}  (MUSIC_PRODUCER_TIER=free|paid in ~/.config/music-producer/keys.env)")
     try:

@@ -47,7 +47,8 @@ Generate **2 candidates from your main provider + 1 from a contrasting one** whe
 
 Rules that matter:
 - **Chunk ≥ 3 s.** Shorter moments (a 0.5 s drop-out) go inside a chunk's `{direction}` and are enforced later by automation in the mix.
-- **First chunk's styles set the whole track.** Put genre, tempo, key, instrumentation and "great production quality" in the global `styles`. Use per-chunk styles only for what changes.
+- **Global `styles` go into every chunk.** Keep them to what holds for the whole track: genre, tempo, key, production quality. Put instruments in the chunk where they **enter**. Global "strings, beat, sub bass" puts the full band in your quiet intro too. The first chunk's styles set the tone, so name the intro's own sparse palette there.
+- **ElevenLabs ignores section dynamics more often than not** (4 of 4 showcase films: the planned breakdown or drop wasn't in either take). Generate 2 takes and pick the closest. The arc you need (drop-outs, quiet breakdowns, the air before a drop) comes from mix automation; `repaint` exists only on the free ACE-Step tier.
 - **Directions in braces** describe arrangement events: entrances, drop-outs, fills, "hit on beat 1", "ring out".
 - The total plan length = the film length (or + up to 2 s if the button rings past the end, trimmed by fit).
 - Put tempo and key in the styles so the analyze step can confirm them. If the analyzed BPM is off, conform with `fit --bpm`.

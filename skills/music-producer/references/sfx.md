@@ -41,7 +41,7 @@ Examples:
 
 ## Layering an A-hit
 
-Three clips at the same `at`, each `align: peak` (or `end` for the swell):
+Clips at the same `at`, each `align: attack` (or `end` for the swell, which leads in and is not part of the hit):
 
 | Layer | Freq focus | Job | Typical gain |
 |---|---|---|---|
@@ -63,6 +63,10 @@ Premium launch films use *abstract* designed sounds: synthetic, processed, music
 - UI tick: `tiny crisp synthetic UI tick, very short, high-pitched, clean` (round-robin, low)
 - Character gesture (instead of a cartoon voice): `short cute rising synth blip, two notes, soft, in A major`
 For the free tier, recordings work as **raw material**: pitch them, layer them with a sub drop, filter them, and run them through the room so they stop sounding like field recordings.
+
+## What generators ignore
+
+ElevenLabs SFX rarely obeys musical notes ("C# then G#" comes back as one random note) or band requests ("low-mid body" came back 95% sub, twice). Don't prompt for pitch: generate, then run `sfx.py tune` and set the clip `pitch`. Shape bands with clip `hpf`/`lpf`/`eq`, not prompts.
 
 ## Pitch and weight
 

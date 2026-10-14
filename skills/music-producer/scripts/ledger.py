@@ -40,6 +40,7 @@ def main():
         print("logged", row["project"])
         return
     rows = [json.loads(l) for l in LEDGER.read_text().splitlines() if l.strip()] if LEDGER.exists() else []
+    rows.sort(key=lambda r: r.get("date", ""))  # "the last 3" = the 3 most recent films
     if not rows:
         print("ledger empty")
     for r in rows[-a.n:]:
